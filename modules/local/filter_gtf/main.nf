@@ -26,9 +26,9 @@ process FILTER_GTF {
     # o: Generic exonic overlap with a reference transcript
     # u: Unknown, intergenic transcript
     # x: Exonic overlap with reference on the opposite strand
-    
+
     grep -E 'class_code "[jioux]"' $gtf > ${prefix}.novel.gtf || true
-    
+
     # If file is empty (no novel transcripts), create empty file to avoid errors downstream
     if [ ! -s ${prefix}.novel.gtf ]; then
         echo "WARNING: No novel transcripts found." >&2

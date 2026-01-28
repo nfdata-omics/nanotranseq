@@ -79,16 +79,16 @@ workflow CODING_POTENTIAL {
     //
     // Combine predictions
     //
-    
+
     // Join all results by meta
     // Note: We use FILTER_GTF.out.gtf here instead of original ch_gtf
-    
+
     ch_combined_inputs = CPAT.out.cpat_results
         .join(FEELNC_CODPOT.out.feelnc_results)
         .join(PLEK.out.plek_results)
         .join(FILTER_GTF.out.gtf)
         .join(GTF_TO_FASTA.out.fasta)
-        
+
     // ch_combined_inputs structure: [ meta, cpat, feelnc, plek, gtf, transcript_fasta ]
 
     COMBINE_CODING_POTENTIAL (

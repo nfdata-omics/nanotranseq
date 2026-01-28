@@ -7,6 +7,8 @@ include { RAW_READS_QC           } from '../subworkflows/local/raw_read_qc/main'
 include { MULTIQC                } from '../modules/nf-core/multiqc/main'
 include { DIRECT_RNA_QC          } from '../subworkflows/local/direct_rna_qc/main'
 include { ALIGNMENT              } from '../subworkflows/local/alignment/main'
+include { STRINGTIE_STRINGTIE    } from '../modules/nf-core/stringtie/stringtie/main'
+include { CODING_POTENTIAL       } from '../subworkflows/local/coding_potential/main'
 include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -23,8 +25,11 @@ workflow NANOTRANSEQ {
     take:
     ch_samplesheet // channel: samplesheet read in from --input
     ch_fasta       // channel: fasta read in from --fasta
+    ch_gtf         // channel: gtf read in from --gtf
     ch_direct_rna // channel: direct_rna read in from --direct_rna
     ch_minimap2_index   // channel: index read in from --minimap2_index
+    ch_cpat_hexamer // channel: cpat_hexamer
+    ch_cpat_logit   // channel: cpat_logit
 
     main:
 
@@ -62,6 +67,27 @@ workflow NANOTRANSEQ {
               )
 
     ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
+
+    //
+    // Assembly: StringTie
+    //
+    STRINGTIE_STRINGTIE(
+        ALIGNMENT.out.minimap2_bam,
+        ch_gtf
+    )
+    ch_versions = ch_versions.mix(STRINGTIE_STRINGTIE.out.versions)
+
+    //
+    // Coding Potential
+    //
+    CODING_POTENTIAL(
+        STRINGTIE_STRINGTIE.out.transcript_gtf,
+        ch_fasta,
+        ch_gtf,
+        ch_cpat_hexamer,
+        ch_cpat_logit
+    )
+    ch_versions = ch_versions.mix(CODING_POTENTIAL.out.versions)
 
     //
     // Collate and save software versions

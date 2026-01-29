@@ -2,13 +2,13 @@
 // Check coding potential of transcript isoforms
 //
 
-include { GTF_TO_FASTA } from '../../modules/local/gtf_to_fasta/main'
-include { GFFCOMPARE } from '../../modules/local/gffcompare/main'
-include { FILTER_GTF } from '../../modules/local/filter_gtf/main'
-include { CPAT } from '../../modules/local/cpat/main'
-include { PLEK } from '../../modules/local/plek/main'
-include { FEELNC_CODPOT } from '../../modules/local/feelnc_codpot/main'
-include { COMBINE_CODING_POTENTIAL } from '../../modules/local/combine_coding_potential/main'
+include { GTF_TO_FASTA } from '../../../modules/local/gtf_to_fasta/main'
+include { GFFCOMPARE } from '../../../modules/nf-core/gffcompare/main'
+include { FILTER_GTF } from '../../../modules/local/filter_gtf/main'
+include { CPAT } from '../../../modules/local/cpat/main'
+include { PLEK } from '../../../modules/local/plek/main'
+include { FEELNC_CODPOT } from '../../../modules/local/feelnc_codpot/main'
+include { COMBINE_CODING_POTENTIAL } from '../../../modules/local/combine_coding_potential/main'
 
 workflow CODING_POTENTIAL {
     take:

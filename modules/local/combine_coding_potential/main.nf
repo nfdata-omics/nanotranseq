@@ -1,5 +1,5 @@
 process COMBINE_CODING_POTENTIAL {
-    tag "combine"
+    tag "$meta1.id"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"

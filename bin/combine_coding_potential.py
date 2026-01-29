@@ -7,7 +7,6 @@ Use consensus voting to identify high-confidence lncRNAs
 
 import argparse
 import sys
-from collections import defaultdict
 from Bio import SeqIO
 
 

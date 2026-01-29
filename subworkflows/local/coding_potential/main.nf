@@ -27,8 +27,8 @@ workflow CODING_POTENTIAL {
     //
     GFFCOMPARE (
         ch_gtf,
-        ch_fasta,
-        ch_ref_gtf
+        ch_fasta.map { [ [id:'genome'], it, [] ] },
+        ch_ref_gtf.map { [ [id:'reference'], it ] }
     )
     ch_versions = ch_versions.mix(GFFCOMPARE.out.versions)
 

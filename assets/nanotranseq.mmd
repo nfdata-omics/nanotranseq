@@ -1,0 +1,133 @@
+%%metro title: nfdata-omics/nanotranseq
+%%metro style: dark
+%%metro line_order: definition
+%%metro file: fastq_in | FASTQ
+%%metro file: report_cp | HTML
+%%metro file: report_de | HTML
+%%metro file: report_tu | HTML
+%%metro line: cdna_fc | cDNA + featureCounts + DESeq2 (default) | #2db572
+%%metro line: directrna_fc | direct RNA + featureCounts + DESeq2 | #a3e635
+%%metro line: cdna_salmon | cDNA + Salmon | #e63946
+%%metro line: directrna_salmon | direct RNA + Salmon | #ff8c00
+%%metro legend: bl
+%%metro grid: preprocessing | 0,0,1,2
+%%metro grid: alignment | 1,0,1,1
+%%metro grid: quant | 2,0,1,1
+%%metro grid: novel | 3,0,1,1
+%%metro grid: coding | 4,0,1,1
+%%metro grid: pseudo | 1,1,1,1
+%%metro grid: usage | 2,1,1,1
+%%metro grid: differential | 3,1,1,1
+
+graph LR
+    subgraph preprocessing [Read QC & trimming]
+        %%metro exit: right | cdna_fc, directrna_fc
+        %%metro exit: bottom | cdna_salmon, directrna_salmon
+        fastq_in[ ]
+        qc[QC\nFastQC / NanoPlot /\nToulligQC]
+        chopper[Chopper\ncDNA only]
+
+        fastq_in -->|cdna_fc,directrna_fc,cdna_salmon,directrna_salmon| qc
+        qc -->|cdna_fc,cdna_salmon| chopper
+    end
+
+    subgraph alignment [Alignment]
+        %%metro entry: left | cdna_fc, directrna_fc
+        %%metro exit: right | cdna_fc, directrna_fc
+        minimap2_align[minimap2\nalign]
+        bedtools_bigwig[bedtools +\nUCSC bigWig/bigBed]
+
+        minimap2_align -->|cdna_fc,directrna_fc| bedtools_bigwig
+    end
+
+    subgraph quant [Quantification]
+        %%metro entry: left | cdna_fc, directrna_fc
+        %%metro exit: right | cdna_fc, directrna_fc
+        %%metro exit: bottom | cdna_fc, directrna_fc
+        stringtie2[StringTie2]
+        stringtie_merge[StringTie\nmerge]
+        featurecounts_quant[featureCounts\ngenes/transcripts]
+
+        stringtie2 -->|cdna_fc,directrna_fc| stringtie_merge
+    end
+
+    subgraph novel [Novel transcripts]
+        %%metro entry: left | cdna_fc, directrna_fc
+        %%metro exit: right | cdna_fc, directrna_fc
+        gffcompare[GffCompare]
+        filter_classes[Filter\nclasses]
+        gffread[gffread]
+
+        gffcompare -->|cdna_fc,directrna_fc| filter_classes
+        filter_classes -->|cdna_fc,directrna_fc| gffread
+    end
+
+    subgraph coding [Coding potential]
+        %%metro entry: left | cdna_fc, directrna_fc
+        cpat[CPAT]
+        feelnc[FEELnc]
+        plek[PLEK]
+        combine[Combine\npredictions]
+        multiqc_cp[MultiQC]
+        report_cp[ ]
+
+        cpat -->|cdna_fc,directrna_fc| combine
+        feelnc -->|cdna_fc,directrna_fc| combine
+        plek -->|cdna_fc,directrna_fc| combine
+        combine -->|cdna_fc,directrna_fc| multiqc_cp
+        multiqc_cp -->|cdna_fc,directrna_fc| report_cp
+    end
+
+    subgraph pseudo [Pseudo-alignment]
+        %%metro entry: left | cdna_salmon, directrna_salmon
+        %%metro exit: right | cdna_salmon, directrna_salmon
+        salmon_quant[Salmon\nquant]
+        tx2gene[tx2gene]
+        tximport[tximport]
+
+        salmon_quant -->|cdna_salmon,directrna_salmon| tx2gene
+        tx2gene -->|cdna_salmon,directrna_salmon| tximport
+    end
+
+    subgraph usage [Transcript usage]
+        %%metro entry: left | cdna_salmon, directrna_salmon
+        drimseq[DRIMSeq]
+        isoform_switch[IsoformSwitch\nAnalyzeR]
+        multiqc_tu[MultiQC]
+        report_tu[ ]
+
+        drimseq -->|cdna_salmon,directrna_salmon| multiqc_tu
+        isoform_switch -->|cdna_salmon,directrna_salmon| multiqc_tu
+        multiqc_tu -->|cdna_salmon,directrna_salmon| report_tu
+    end
+
+    subgraph differential [Differential expression]
+        %%metro entry: top | cdna_fc, directrna_fc
+        deseq2_fit[DESeq2\nfit]
+        deseq2_compare[DESeq2\ncompare]
+        multiqc_de[MultiQC]
+        report_de[ ]
+
+        deseq2_fit -->|cdna_fc,directrna_fc| deseq2_compare
+        deseq2_compare -->|cdna_fc,directrna_fc| multiqc_de
+        multiqc_de -->|cdna_fc,directrna_fc| report_de
+    end
+
+    %% Inter-section edges
+    chopper -->|cdna_fc| minimap2_align
+    chopper -->|cdna_salmon| salmon_quant
+    qc -->|directrna_fc| minimap2_align
+    qc -->|directrna_salmon| salmon_quant
+
+    minimap2_align -->|cdna_fc,directrna_fc| stringtie2
+    minimap2_align -->|cdna_fc,directrna_fc| featurecounts_quant
+
+    stringtie_merge -->|cdna_fc,directrna_fc| gffcompare
+    gffread -->|cdna_fc,directrna_fc| cpat
+    gffread -->|cdna_fc,directrna_fc| feelnc
+    gffread -->|cdna_fc,directrna_fc| plek
+
+    featurecounts_quant -->|cdna_fc,directrna_fc| deseq2_fit
+
+    tximport -->|cdna_salmon,directrna_salmon| drimseq
+    tximport -->|cdna_salmon,directrna_salmon| isoform_switch

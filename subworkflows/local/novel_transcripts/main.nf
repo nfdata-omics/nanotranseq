@@ -2,7 +2,7 @@ include { SAMTOOLS_FAIDX                                } from '../../../modules
 include { GFFCOMPARE as GFFCOMPARE_NOVEL_TRANSCRIPTS    } from '../../../modules/nf-core/gffcompare/main'
 include { GFFREAD    as GFFREAD_NOVEL_TRANSCRIPTS       } from '../../../modules/nf-core/gffread/main'
 include { FILTER_GFFCOMPARE_CLASSES                     } from '../../../modules/local/filter_gffcompare_classes'
-
+include { SQANTI3                                       } from '../../../modules/local/sqanti3/main'
 
 workflow NOVEL_TRANSCRIPTS {
     take:
@@ -62,22 +62,44 @@ workflow NOVEL_TRANSCRIPTS {
         versions = versions.mix(FILTER_GFFCOMPARE_CLASSES.out.versions)
 
         //
+        // Classify + filter isoform artifacts (intra-priming, RT-switching)
+        // with SQANTI3. Its corrected GTF replaces the raw filtered GTF downstream.
+        //
+
+        ch_fasta_for_sqanti = fasta.map { _meta, fasta_file -> fasta_file }
+
+        ch_selected_gtf = FILTER_GFFCOMPARE_CLASSES.out.filtered_gtf
+        sqanti_classification = channel.empty()
+
+        if (params.run_sqanti) {
+            SQANTI3(
+                FILTER_GFFCOMPARE_CLASSES.out.filtered_gtf,
+                reference_gtf,
+                ch_fasta_for_sqanti
+            )
+            versions = versions.mix(SQANTI3.out.versions)
+            ch_selected_gtf = SQANTI3.out.corrected_gtf
+            sqanti_classification = SQANTI3.out.classification
+        }
+
+        //
         // Extract transcript sequences for the selected novel candidates.
         //
         ch_fasta_for_gffread = fasta.map { meta, fasta_file -> fasta_file }
 
         GFFREAD_NOVEL_TRANSCRIPTS(
-            FILTER_GFFCOMPARE_CLASSES.out.filtered_gtf,
+            ch_selected_gtf,
             ch_fasta_for_gffread
         )
         versions = versions.mix(GFFREAD_NOVEL_TRANSCRIPTS.out.versions)
 
     emit:
-        tmap              = GFFCOMPARE_NOVEL_TRANSCRIPTS.out.tmap
-        annotated_gtf     = GFFCOMPARE_NOVEL_TRANSCRIPTS.out.annotated_gtf
-        novel_gtf         = FILTER_GFFCOMPARE_CLASSES.out.filtered_gtf
-        novel_tmap        = FILTER_GFFCOMPARE_CLASSES.out.filtered_tmap
-        class_summary     = FILTER_GFFCOMPARE_CLASSES.out.class_summary
-        novel_fasta       = GFFREAD_NOVEL_TRANSCRIPTS.out.gffread_fasta
-        versions          = versions
+        tmap                    = GFFCOMPARE_NOVEL_TRANSCRIPTS.out.tmap
+        annotated_gtf           = GFFCOMPARE_NOVEL_TRANSCRIPTS.out.annotated_gtf
+        novel_gtf               = ch_selected_gtf
+        novel_tmap              = FILTER_GFFCOMPARE_CLASSES.out.filtered_tmap
+        class_summary           = FILTER_GFFCOMPARE_CLASSES.out.class_summary
+        novel_fasta             = GFFREAD_NOVEL_TRANSCRIPTS.out.gffread_fasta
+        sqanti_classification   = sqanti_classification
+        versions                = versions
 }

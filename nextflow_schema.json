@@ -46,7 +46,8 @@
                 },
                 "quantification_tool": {
                     "type": "string",
-                    "description": "Tool to be used for quantification. Either 'featurecounts' or 'salmon'",
+                    "description": "Tool to be used for quantification. One of 'featurecounts' (gene-level), 'oarfish' (ONT-native transcript-level for DTU), or 'both'.",
+                    "enum": ["featurecounts", "oarfish", "both"],
                     "default": "featurecounts"
                 },
                 "novel_class_codes": {
@@ -108,6 +109,11 @@
                     "type": "number",
                     "description": "FDR to be used during differential analysis",
                     "default": 0.05
+                },
+                "run_sqanti": {
+                    "type": "boolean",
+                    "description": "Run SQANTI3 structural classification and QC on assembled transcripts.",
+                    "default": true
                 },
                 "email": {
                     "type": "string",

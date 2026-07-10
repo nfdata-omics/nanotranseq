@@ -81,6 +81,9 @@
                 "SAMTOOLS_FAIDX": {
                     "samtools": "1.23.1"
                 },
+                "SQANTI3": {
+                    "sqanti3": "6.0.1"
+                },
                 "STRINGTIE2": {
                     "stringtie2": "2.1.4"
                 },
@@ -192,6 +195,10 @@
                 "novel_transcripts/gffread",
                 "novel_transcripts/gffread/novel_transcripts.fasta",
                 "novel_transcripts/gffread/versions.yml",
+                "novel_transcripts/sqanti3",
+                "novel_transcripts/sqanti3/novel_transcripts_classification.txt",
+                "novel_transcripts/sqanti3/novel_transcripts_corrected.gtf",
+                "novel_transcripts/sqanti3/versions.yml",
                 "pipeline_info",
                 "pipeline_info/nanotranseq_software_mqc_versions.yml",
                 "pseudoalignment",
@@ -396,25 +403,25 @@
                 "cds_sequences.fa:md5,262d34d3c6e3bdadb0b3ce4bb377df89",
                 "mrna_sequence_summary.tsv:md5,9cdba3a2aa14e3cbf70f6f880d368558",
                 "mrna_sequences.fa:md5,61d2b95efdd8d153fdd8527a93e7f410",
-                "novel_transcripts.coding_potential_report.txt:md5,94e9de4c2026d030eef64431f448cec7",
+                "novel_transcripts.coding_potential_report.txt:md5,c1859ccbb0bfe752ff1faa04c7e1c74e",
                 "novel_transcripts.final_protein_coding.fa:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "novel_transcripts.final_protein_coding.gtf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "novel_transcripts.prediction_summary.tsv:md5,a3956f5c6293afc8ac4e801459dc4cbf",
+                "novel_transcripts.prediction_summary.tsv:md5,9bbc1965f5e323bfb1da991dfdf93ee3",
                 "novel_transcripts.prediction_summary_protein_coding.tsv:md5,ef925ec2b6c0d68fd461982ee29117d2",
                 "versions.yml:md5,33bd1a7ae87745e272e49e4456813c1f",
                 "CPAT_Model.Hexamer.tsv:md5,3a5802215babfa88fd64e7ac9e17c6f2",
-                "novel_transcripts.cpat.tsv:md5,6d633cc46f5a657aae02dccaca976e6f",
+                "novel_transcripts.cpat.tsv:md5,0c6e0807f53db2bc3fc18fe7d32e9668",
                 "versions.yml:md5,29647967711a051331f556cca4398b18",
-                "novel_transcripts.feelnc.tsv:md5,f5095a49e6ef05d5916936657c50e550",
-                "novel_transcripts.feelnc_codpot.lncRNA.fa:md5,855a5050403e2699e541c32bdf65baaf",
+                "novel_transcripts.feelnc.tsv:md5,11581e8dcdbdbe39e088ff699b6e28fc",
+                "novel_transcripts.feelnc_codpot.lncRNA.fa:md5,07f661e8878d7b19168df04d2aaa9b50",
                 "novel_transcripts.feelnc_codpot.mRNA.fa:md5,d41d8cd98f00b204e9800998ecf8427e",
-                "novel_transcripts.feelnc_codpot_RF.txt:md5,8215951229593a013098836fce5afcd3",
-                "novel_transcripts.lncRNA.fa:md5,855a5050403e2699e541c32bdf65baaf",
+                "novel_transcripts.feelnc_codpot_RF.txt:md5,0f77460f862012724b6aa2ec1380f010",
+                "novel_transcripts.lncRNA.fa:md5,07f661e8878d7b19168df04d2aaa9b50",
                 "novel_transcripts.mRNA.fa:md5,d41d8cd98f00b204e9800998ecf8427e",
                 "versions.yml:md5,f8b6fca6907a81a1bcf4a23c7254397f",
-                "novel_transcripts.fasta:md5,1be06560de34c8d3fe411362bb71be64",
-                "novel_transcripts.plek.tsv:md5,53df94018a96f9c48833c403e6e442e6",
-                "novel_transcripts.plek.txt:md5,c729b181d1175b32373fd58930319368",
+                "novel_transcripts.fasta:md5,e5ea9fc5bc592e7543c68e286f09f3fd",
+                "novel_transcripts.plek.tsv:md5,80a0a9fd1e69d4066bfa6e34ad4da86d",
+                "novel_transcripts.plek.txt:md5,e9f052599ebafc04aa347a99ef3618c8",
                 "versions.yml:md5,7c75cfd379fa315006a78296d48a1378",
                 "novel_transcripts.class_summary.tsv:md5,d9655908224d7ea19195a5a2c80c39b4",
                 "novel_transcripts.novel.gtf:md5,2f92bdbecacddb31add7a6b894e56547",
@@ -427,8 +434,11 @@
                 "novel_transcripts.stringtie.merged.gtf.tmap:md5,23a8ab85aed5da8bd10ed656102e738e",
                 "novel_transcripts.tracking:md5,0d9c57ea08c73029a87bc615482da112",
                 "versions.yml:md5,0ad1596cbf5b1af45da95ee6425295e1",
-                "novel_transcripts.fasta:md5,1be06560de34c8d3fe411362bb71be64",
+                "novel_transcripts.fasta:md5,e5ea9fc5bc592e7543c68e286f09f3fd",
                 "versions.yml:md5,7e2c4680837ad62b5c91b9bf52145f0f",
+                "novel_transcripts_classification.txt:md5,7c61084f5a154352556e1beb8d79c9df",
+                "novel_transcripts_corrected.gtf:md5,12d3ceb6c6c0e37c34c748ae1231524a",
+                "versions.yml:md5,f7dd5b2ca837c67cf90fa775077e9156",
                 "ambig_info.tsv:md5,a608a0af74fbd1986bc7f3a5e43a7643",
                 "cmd_info.json:md5,3492dc0f3ac782e26f6272b0ddec7cbe",
                 "flenDist.txt:md5,2de170bdc9f6fd237d286429b292bb28",
@@ -466,7 +476,7 @@
                 "isoform_switch_results.rds:md5,301332f37b5626ed96769c3c81dd5687"
             ]
         ],
-        "timestamp": "2026-07-08T10:03:11.8513",
+        "timestamp": "2026-07-09T08:28:12.37974",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

@@ -17,6 +17,7 @@ include { EXTRACT_LNCRNA_SEQUENCES        } from '../modules/local/extract_lncrn
 include { DIFFERENTIAL_ANALYSIS           } from '../subworkflows/nfdata-omics/deseq2_analysis/main'
 include { PSEUDOALIGNMENT                 } from '../subworkflows/local/pseudoalignment/main'
 include { TRANSCRIPT_USAGE                } from '../subworkflows/local/transcript_usage/main'
+include { MINIMAP2_ALIGN as MINIMAP2_TRANSCRIPTOME } from '../modules/nf-core/minimap2/align/main'
 include { paramsSummaryMap                } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -73,6 +74,31 @@ workflow NANOTRANSEQ {
 
     // If cDNA was performed, use CHOPPER's output as reads. If not, use raw data
     ch_reads = params.direct_rna ? ch_samplesheet : DIRECT_RNA_QC.out.reads
+
+    //
+    // Transcriptome alignment (map-ont), built once and reused by oarfish quant
+    //
+    ch_transcriptome_bam     = Channel.empty()   // [ meta, bam ]
+    ch_transcriptome_bam_bai = Channel.empty()   // [ meta, bam, bai ]
+    // Transcriptome BAM is needed by oarfish quant and by the eventalign step, which the
+    // m6anet (RNA modifications) and xpore (RNA methylation) analyses consume.
+    // poly(A) uses the genome alignment, so it does not require the transcriptome BAM.
+    def needs_transcriptome_bam = params.quantification_tool == 'oarfish' ||
+                                  params.quantification_tool == 'salmon' ||
+                                  params.quantification_tool == 'both'
+    if (needs_transcriptome_bam) {
+        MINIMAP2_TRANSCRIPTOME(
+            ch_reads,
+            ch_transcript_fasta.map { [ [id: 'transcriptome'], it ] }.first(),
+            true,   // bam_format
+            '',  // bam_index_extension
+            false,  // cigar_paf_format
+            false   // cigar_bam
+        )
+        ch_versions = ch_versions.mix(MINIMAP2_TRANSCRIPTOME.out.versions)
+        ch_transcriptome_bam     = MINIMAP2_TRANSCRIPTOME.out.bam
+        //ch_transcriptome_bam_bai = MINIMAP2_TRANSCRIPTOME.out.bam.join(MINIMAP2_TRANSCRIPTOME.out.index)
+    }
 
     //
     // Run alignment if either `featurecounts` or `both` is selected as quantification tool
@@ -209,12 +235,11 @@ workflow NANOTRANSEQ {
     if (params.quantification_tool == 'salmon' || params.quantification_tool == 'both') {
 
         PSEUDOALIGNMENT(
+            ch_gtf,
+            ch_transcriptome_bam,
             ch_reads,
             ch_fasta,
             ch_transcript_fasta,
-            ch_gtf,
-            ch_gene_id,
-            ch_gene_attributes,
         )
         ch_versions = ch_versions.mix(PSEUDOALIGNMENT.out.versions)
 

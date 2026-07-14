@@ -17,9 +17,6 @@
                 "CPAT_BUILD_MODEL": {
                     "cpat": "3.0.5"
                 },
-                "CUSTOM_TX2GENE": {
-                    "python": "3.10.4"
-                },
                 "DRIMSEQ": {
                     "r-base": "4.4.2",
                     "bioconductor-drimseq": "1.34.0"
@@ -60,23 +57,24 @@
                 "MINIMAP2_INDEX": {
                     "minimap2": "2.29-r1283"
                 },
+                "MINIMAP2_TRANSCRIPTOME": {
+                    "minimap2": "2.29-r1283",
+                    "samtools": 1.21
+                },
                 "MULTIQC": {
                     "multiqc": 1.34
                 },
                 "NANOPLOT": {
                     "nanoplot": "1.46.1"
                 },
+                "OARFISH": {
+                    "oarfish": "0.10.0"
+                },
                 "PLEK_PARSE": {
                     "python": "3.9.21"
                 },
                 "PLEK_RUN": {
                     "plek": "1.2"
-                },
-                "SALMON_INDEX": {
-                    "salmon": "1.10.3"
-                },
-                "SALMON_QUANT": {
-                    "salmon": "1.10.3"
                 },
                 "SAMTOOLS_FAIDX": {
                     "samtools": "1.23.1"
@@ -99,8 +97,11 @@
                 "TOULLIGQC": {
                     "toulligqc": "2.7.1"
                 },
-                "TXIMETA_TXIMPORT": {
-                    "bioconductor-tximeta": "1.20.1"
+                "TX2GENE_GTF": {
+                    "python": "3.9.5"
+                },
+                "TXIMPORT": {
+                    "bioconductor-tximeta": "1.24.0"
                 },
                 "UCSC_BEDGRAPHTOBIGWIG": {
                     "ucsc": 482
@@ -202,87 +203,23 @@
                 "pipeline_info",
                 "pipeline_info/nanotranseq_software_mqc_versions.yml",
                 "pseudoalignment",
-                "pseudoalignment/merged_results",
-                "pseudoalignment/merged_results/all_samples.gene_counts.tsv",
-                "pseudoalignment/merged_results/all_samples.gene_counts_length_scaled.tsv",
-                "pseudoalignment/merged_results/all_samples.gene_counts_scaled.tsv",
-                "pseudoalignment/merged_results/all_samples.gene_lengths.tsv",
-                "pseudoalignment/merged_results/all_samples.gene_tpm.tsv",
-                "pseudoalignment/merged_results/all_samples.transcript_counts.tsv",
-                "pseudoalignment/merged_results/all_samples.transcript_lengths.tsv",
-                "pseudoalignment/merged_results/all_samples.transcript_tpm.tsv",
-                "pseudoalignment/merged_results/reference gtf.tx2gene.tsv",
-                "pseudoalignment/salmon",
-                "pseudoalignment/salmon/K562",
-                "pseudoalignment/salmon/K562/aux_info",
-                "pseudoalignment/salmon/K562/aux_info/ambig_info.tsv",
-                "pseudoalignment/salmon/K562/aux_info/expected_bias.gz",
-                "pseudoalignment/salmon/K562/aux_info/fld.gz",
-                "pseudoalignment/salmon/K562/aux_info/meta_info.json",
-                "pseudoalignment/salmon/K562/aux_info/observed_bias.gz",
-                "pseudoalignment/salmon/K562/aux_info/observed_bias_3p.gz",
-                "pseudoalignment/salmon/K562/cmd_info.json",
-                "pseudoalignment/salmon/K562/libParams",
-                "pseudoalignment/salmon/K562/libParams/flenDist.txt",
-                "pseudoalignment/salmon/K562/lib_format_counts.json",
-                "pseudoalignment/salmon/K562/logs",
-                "pseudoalignment/salmon/K562/logs/salmon_quant.log",
-                "pseudoalignment/salmon/K562/quant.genes.sf",
-                "pseudoalignment/salmon/K562/quant.sf",
-                "pseudoalignment/salmon/K562_lib_format_counts.json",
-                "pseudoalignment/salmon/K562_meta_info.json",
-                "pseudoalignment/salmon/MCF7",
-                "pseudoalignment/salmon/MCF7/aux_info",
-                "pseudoalignment/salmon/MCF7/aux_info/ambig_info.tsv",
-                "pseudoalignment/salmon/MCF7/aux_info/expected_bias.gz",
-                "pseudoalignment/salmon/MCF7/aux_info/fld.gz",
-                "pseudoalignment/salmon/MCF7/aux_info/meta_info.json",
-                "pseudoalignment/salmon/MCF7/aux_info/observed_bias.gz",
-                "pseudoalignment/salmon/MCF7/aux_info/observed_bias_3p.gz",
-                "pseudoalignment/salmon/MCF7/cmd_info.json",
-                "pseudoalignment/salmon/MCF7/libParams",
-                "pseudoalignment/salmon/MCF7/libParams/flenDist.txt",
-                "pseudoalignment/salmon/MCF7/lib_format_counts.json",
-                "pseudoalignment/salmon/MCF7/logs",
-                "pseudoalignment/salmon/MCF7/logs/salmon_quant.log",
-                "pseudoalignment/salmon/MCF7/quant.genes.sf",
-                "pseudoalignment/salmon/MCF7/quant.sf",
-                "pseudoalignment/salmon/MCF7_lib_format_counts.json",
-                "pseudoalignment/salmon/MCF7_meta_info.json",
-                "pseudoalignment/salmon/Q562",
-                "pseudoalignment/salmon/Q562/aux_info",
-                "pseudoalignment/salmon/Q562/aux_info/ambig_info.tsv",
-                "pseudoalignment/salmon/Q562/aux_info/expected_bias.gz",
-                "pseudoalignment/salmon/Q562/aux_info/fld.gz",
-                "pseudoalignment/salmon/Q562/aux_info/meta_info.json",
-                "pseudoalignment/salmon/Q562/aux_info/observed_bias.gz",
-                "pseudoalignment/salmon/Q562/aux_info/observed_bias_3p.gz",
-                "pseudoalignment/salmon/Q562/cmd_info.json",
-                "pseudoalignment/salmon/Q562/libParams",
-                "pseudoalignment/salmon/Q562/libParams/flenDist.txt",
-                "pseudoalignment/salmon/Q562/lib_format_counts.json",
-                "pseudoalignment/salmon/Q562/logs",
-                "pseudoalignment/salmon/Q562/logs/salmon_quant.log",
-                "pseudoalignment/salmon/Q562/quant.genes.sf",
-                "pseudoalignment/salmon/Q562/quant.sf",
-                "pseudoalignment/salmon/Q562_lib_format_counts.json",
-                "pseudoalignment/salmon/Q562_meta_info.json",
-                "pseudoalignment/salmon/salmon",
-                "pseudoalignment/salmon/salmon/complete_ref_lens.bin",
-                "pseudoalignment/salmon/salmon/ctable.bin",
-                "pseudoalignment/salmon/salmon/ctg_offsets.bin",
-                "pseudoalignment/salmon/salmon/duplicate_clusters.tsv",
-                "pseudoalignment/salmon/salmon/info.json",
-                "pseudoalignment/salmon/salmon/mphf.bin",
-                "pseudoalignment/salmon/salmon/pos.bin",
-                "pseudoalignment/salmon/salmon/pre_indexing.log",
-                "pseudoalignment/salmon/salmon/rank.bin",
-                "pseudoalignment/salmon/salmon/refAccumLengths.bin",
-                "pseudoalignment/salmon/salmon/ref_indexing.log",
-                "pseudoalignment/salmon/salmon/reflengths.bin",
-                "pseudoalignment/salmon/salmon/refseq.bin",
-                "pseudoalignment/salmon/salmon/seq.bin",
-                "pseudoalignment/salmon/salmon/versionInfo.json",
+                "pseudoalignment/minimap2_transcriptome",
+                "pseudoalignment/minimap2_transcriptome/K562",
+                "pseudoalignment/minimap2_transcriptome/K562/K562.bam",
+                "pseudoalignment/minimap2_transcriptome/MCF7",
+                "pseudoalignment/minimap2_transcriptome/MCF7/MCF7.bam",
+                "pseudoalignment/minimap2_transcriptome/Q562",
+                "pseudoalignment/minimap2_transcriptome/Q562/Q562.bam",
+                "pseudoalignment/oarfish",
+                "pseudoalignment/oarfish/K562",
+                "pseudoalignment/oarfish/K562/K562.meta_info.json",
+                "pseudoalignment/oarfish/K562/K562.quant",
+                "pseudoalignment/oarfish/MCF7",
+                "pseudoalignment/oarfish/MCF7/MCF7.meta_info.json",
+                "pseudoalignment/oarfish/MCF7/MCF7.quant",
+                "pseudoalignment/oarfish/Q562",
+                "pseudoalignment/oarfish/Q562/Q562.meta_info.json",
+                "pseudoalignment/oarfish/Q562/Q562.quant",
                 "qc",
                 "qc/raw_reads",
                 "qc/raw_reads/K562",
@@ -381,7 +318,18 @@
                 "transcript_usage/isoform_switch",
                 "transcript_usage/isoform_switch/isoform_switch_plots.pdf",
                 "transcript_usage/isoform_switch/isoform_switch_results.csv",
-                "transcript_usage/isoform_switch/isoform_switch_results.rds"
+                "transcript_usage/isoform_switch/isoform_switch_results.rds",
+                "tx2gene",
+                "tx2gene/reference.tx2gene.tsv",
+                "tximport",
+                "tximport/all_samples.gene_counts.tsv",
+                "tximport/all_samples.gene_counts_length_scaled.tsv",
+                "tximport/all_samples.gene_counts_scaled.tsv",
+                "tximport/all_samples.gene_lengths.tsv",
+                "tximport/all_samples.gene_tpm.tsv",
+                "tximport/all_samples.transcript_counts.tsv",
+                "tximport/all_samples.transcript_lengths.tsv",
+                "tximport/all_samples.transcript_tpm.tsv"
             ],
             [
                 "chr22_1-17550000.mmi:md5,8d3ef72648b862a316f51ce13994543e",
@@ -439,25 +387,12 @@
                 "novel_transcripts_classification.txt:md5,7c61084f5a154352556e1beb8d79c9df",
                 "novel_transcripts_corrected.gtf:md5,12d3ceb6c6c0e37c34c748ae1231524a",
                 "versions.yml:md5,f7dd5b2ca837c67cf90fa775077e9156",
-                "ambig_info.tsv:md5,a608a0af74fbd1986bc7f3a5e43a7643",
-                "cmd_info.json:md5,3492dc0f3ac782e26f6272b0ddec7cbe",
-                "flenDist.txt:md5,2de170bdc9f6fd237d286429b292bb28",
-                "lib_format_counts.json:md5,6eeba5785a9065697d7929b29397c773",
-                "quant.genes.sf:md5,51a0591014efdbc681c411756812099b",
-                "quant.sf:md5,d2bb8df7aa017938c41a8e229d8d17a9",
-                "ambig_info.tsv:md5,d5e1360c1be268ce8810a6c8a93145f9",
-                "cmd_info.json:md5,aa3d95958f7f17099a488d1a423e6958",
-                "flenDist.txt:md5,2de170bdc9f6fd237d286429b292bb28",
-                "lib_format_counts.json:md5,c162fd4b8dd700fdfff985d59c6540b7",
-                "quant.genes.sf:md5,3739348dcecd19eaaa8a56b2d2c7bda9",
-                "quant.sf:md5,ce2a8deca58eba6982e5dcb2a1729b2f",
-                "ambig_info.tsv:md5,8da6a03d5c902d12d2cd9ba9bb8d0b70",
-                "cmd_info.json:md5,e59e489b6738e89395d1a5c9bd466411",
-                "flenDist.txt:md5,2de170bdc9f6fd237d286429b292bb28",
-                "lib_format_counts.json:md5,7079e6cd2a757697475ca2351725bd31",
-                "quant.genes.sf:md5,985f0542911ac404de47f41637c1f637",
-                "quant.sf:md5,83a6e15731f172bef1e9c7949ea127b5",
-                "duplicate_clusters.tsv:md5,46a63eef7c71b490a6c7c5bf5877b955",
+                "K562.bam:md5,8894a9fd5442f656b1401824062ca738",
+                "MCF7.bam:md5,39f167d3d1f7651a4a8754454768475b",
+                "Q562.bam:md5,3be622328e5b785ce1d6a6b779e7d1ec",
+                "K562.quant:md5,f722cddf35a30c4710ca0cb67014d9dd",
+                "MCF7.quant:md5,c0787b69ed4bb153321d75599365660d",
+                "Q562.quant:md5,688c139b387809ede6c218f6568a5c5c",
                 "fastqc-status-check-heatmap.txt:md5,345276738cfd9eac3def88f355cfadba",
                 "fastqc_adapter_content_plot.txt:md5,7cbaf3cfd5f0a5594ebfa88545f82ed0",
                 "fastqc_overrepresented_sequences_plot.txt:md5,e3d240bd0bce991173d4c7e0c9a8a8d1",
@@ -469,14 +404,23 @@
                 "fastqc_sequence_length_distribution_plot.txt:md5,8255047309dac1f80ff2775efe5227d9",
                 "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
                 "multiqc_fastqc.txt:md5,54d75d0eab35aec94ffe3f54d46382f3",
-                "drimseq_gene_results.csv:md5,a227d42afbcc590b4e949075cde4a5b6",
-                "drimseq_object.rds:md5,9729e140c2e2c767229701e3a35bfb5e",
-                "drimseq_transcript_results.csv:md5,a227d42afbcc590b4e949075cde4a5b6",
+                "drimseq_gene_results.csv:md5,f12a4b85b2e91e16c0bdf0d5befe1a43",
+                "drimseq_object.rds:md5,03df2248fc229238587471ec69995d5e",
+                "drimseq_transcript_results.csv:md5,e202e2da194ee019f9af1768950892e7",
                 "isoform_switch_results.csv:md5,a227d42afbcc590b4e949075cde4a5b6",
-                "isoform_switch_results.rds:md5,301332f37b5626ed96769c3c81dd5687"
+                "isoform_switch_results.rds:md5,c08bc3be70025c07e418f2c4a2baca64",
+                "reference.tx2gene.tsv:md5,1cad27eee9355a5c003a9c8da17044ac",
+                "all_samples.gene_counts.tsv:md5,e2a88ddb4e4c819fc3be060f555f65f1",
+                "all_samples.gene_counts_length_scaled.tsv:md5,5608381a483cc82f96ab45dd55fb9b93",
+                "all_samples.gene_counts_scaled.tsv:md5,e2a88ddb4e4c819fc3be060f555f65f1",
+                "all_samples.gene_lengths.tsv:md5,1f8cc4e38a3443abeddd431d71e78b6d",
+                "all_samples.gene_tpm.tsv:md5,e2a88ddb4e4c819fc3be060f555f65f1",
+                "all_samples.transcript_counts.tsv:md5,61a89c31b4afb888aa37779544ed960a",
+                "all_samples.transcript_lengths.tsv:md5,17e58e48a180471b3547c9cd26376004",
+                "all_samples.transcript_tpm.tsv:md5,61a89c31b4afb888aa37779544ed960a"
             ]
         ],
-        "timestamp": "2026-07-09T08:28:12.37974",
+        "timestamp": "2026-07-13T07:45:52.712131",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

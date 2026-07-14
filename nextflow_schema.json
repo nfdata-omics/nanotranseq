@@ -50,6 +50,12 @@
                     "enum": ["featurecounts", "oarfish", "both"],
                     "default": "featurecounts"
                 },
+                "pseudoaligner": {
+                    "type": "string",
+                    "description": "Transcript quantifier used in the pseudoalignment path (when --quantification_tool is 'oarfish' or 'both'). 'oarfish' is ONT-native and the default; 'salmon' is opt-in and experimental on noisy long reads.",
+                    "enum": ["oarfish", "salmon"],
+                    "default": "oarfish"
+                },
                 "novel_class_codes": {
                     "type": "string",
                     "description": "Comma-separated gffcompare class codes to keep as novel transcript candidates for coding-potential analysis.",
@@ -114,6 +120,11 @@
                     "type": "boolean",
                     "description": "Run SQANTI3 structural classification and QC on assembled transcripts.",
                     "default": true
+                },
+                "run_polya": {
+                    "type": "boolean",
+                    "description": "Estimate poly(A) tail length per read (nanopolish polya). Direct-RNA input with raw signal (FAST5) required. Signal preparation runs automatically. Produces a per-read TSV; no between-condition comparison is performed.",
+                    "default": false
                 },
                 "email": {
                     "type": "string",

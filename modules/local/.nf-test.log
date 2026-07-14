@@ -1,8 +1,8 @@
-Jul-06 17:52:50.876 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.3
-Jul-06 17:52:50.884 [main] INFO  com.askimed.nf.test.App - Arguments: [test, tests/default.nf.test, --update-snapshot]
-Jul-06 17:52:51.397 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 25.10.4
-Jul-06 17:52:51.399 [main] WARN  com.askimed.nf.test.commands.RunTestsCommand - No nf-test config file found.
-Jul-06 17:52:51.472 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 15 files from directory /Users/karla.ruiz/Documents/development/nanotranseq/modules/local in 0.072 sec
-Jul-06 17:52:51.473 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 0 files containing tests.
-Jul-06 17:52:51.473 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found files: []
-Jul-06 17:52:51.475 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Found 0 tests to execute.
+Jul-09 13:45:32.758 [main] INFO  com.askimed.nf.test.App - nf-test 0.9.5
+Jul-09 13:45:32.765 [main] INFO  com.askimed.nf.test.App - Arguments: [test]
+Jul-09 13:45:33.330 [main] INFO  com.askimed.nf.test.App - Nextflow Version: 26.04.4
+Jul-09 13:45:33.332 [main] WARN  com.askimed.nf.test.commands.RunTestsCommand - No nf-test config file found.
+Jul-09 13:45:33.422 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Loaded 19 files from directory /Users/karla.ruiz/Documents/development/nanotranseq/modules/local in 0.089 sec
+Jul-09 13:45:33.423 [main] INFO  com.askimed.nf.test.lang.dependencies.DependencyResolver - Found 0 files containing tests.
+Jul-09 13:45:33.423 [main] DEBUG com.askimed.nf.test.lang.dependencies.DependencyResolver - Found files: []
+Jul-09 13:45:33.424 [main] INFO  com.askimed.nf.test.commands.RunTestsCommand - Found 0 tests to execute.

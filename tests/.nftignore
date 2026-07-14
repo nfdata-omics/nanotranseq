@@ -25,6 +25,7 @@ pseudoalignment/salmon/salmon/*.{json,bin,log}
 pseudoalignment/salmon/*.{log,bin,json}
 pseudoalignment/salmon/**/**/*.{log,gz,json}
 pseudoalignment/merged_results/*.{tsv}
+pseudoalignment/oarfish/**/*.meta_info.json
 pipeline_info/*.{html,json,txt,yml}
 transcript_usage/isoform_switch/*.{pdf}
 transcript_usage/drimseq/*.{pdf}

@@ -10,3 +10,4 @@ null/
 .lineage/
 .nf-test/
 .nf-test.log
+tests/data/directrna/samplesheet_directrna.generated.csv

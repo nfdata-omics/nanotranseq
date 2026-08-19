@@ -5,7 +5,7 @@
 */
 include { RAW_READS_QC                    } from '../subworkflows/local/raw_read_qc/main'
 include { MULTIQC                         } from '../modules/nf-core/multiqc/main'
-include { DIRECT_RNA_QC                   } from '../subworkflows/local/direct_rna_qc/main'
+include { CDNA_QC                         } from '../subworkflows/local/cdna_qc/main'
 include { ALIGNMENT                       } from '../subworkflows/local/alignment/main'
 include { BEDTOOLS_BIGWIG                 } from '../subworkflows/local/bedtools_bigwig/main'
 include { STRINGTIE_FEATURECOUNTS         } from '../subworkflows/local/stringtie_featurecounts/main'
@@ -16,7 +16,11 @@ include { EXTRACT_CDS_SEQUENCES           } from '../modules/local/extract_cds_s
 include { EXTRACT_LNCRNA_SEQUENCES        } from '../modules/local/extract_lncrna_sequences/main'
 include { DIFFERENTIAL_ANALYSIS           } from '../subworkflows/nfdata-omics/deseq2_analysis/main'
 include { PSEUDOALIGNMENT                 } from '../subworkflows/local/pseudoalignment/main'
+include { SIGNAL_ANALYSIS                 } from '../subworkflows/local/signal_analysis/main'
+include { NANOPOLISH_POLYA                } from '../modules/local/nanopolish_polya/main'
 include { TRANSCRIPT_USAGE                } from '../subworkflows/local/transcript_usage/main'
+include { MINIMAP2_ALIGN as MINIMAP2_TRANSCRIPTOME } from '../modules/nf-core/minimap2/align/main'
+include { UNTAR                           } from '../modules/nf-core/untar/main'
 include { paramsSummaryMap                } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc            } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML          } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -63,16 +67,44 @@ workflow NANOTRANSEQ {
     // Run Chopper if cDNA sequencing was performed
     if (!params.direct_rna) {
 
-        DIRECT_RNA_QC (
+        CDNA_QC (
             ch_samplesheet,
         )
 
-        ch_versions = ch_versions.mix(DIRECT_RNA_QC.out.versions)
+        ch_versions = ch_versions.mix(CDNA_QC.out.versions)
 
     }
 
     // If cDNA was performed, use CHOPPER's output as reads. If not, use raw data
-    ch_reads = params.direct_rna ? ch_samplesheet : DIRECT_RNA_QC.out.reads
+    ch_reads = params.direct_rna ? ch_samplesheet : CDNA_QC.out.reads
+
+    // Genome alignment (reads-to-genome BAM+BAI), set inside the featurecounts branch.
+    ch_genome_bam = Channel.empty()
+
+    //
+    // Transcriptome alignment (map-ont), built once and reused by oarfish quant
+    //
+    ch_transcriptome_bam     = Channel.empty()   // [ meta, bam ]
+    ch_transcriptome_bam_bai = Channel.empty()   // [ meta, bam, bai ]
+    // Transcriptome BAM is needed by oarfish quant and by the eventalign step, which the
+    // m6anet (RNA modifications) and xpore (RNA methylation) analyses consume.
+    // poly(A) uses the genome alignment, so it does not require the transcriptome BAM.
+    def needs_transcriptome_bam = params.quantification_tool == 'oarfish' ||
+                                  params.quantification_tool == 'salmon' ||
+                                  params.quantification_tool == 'both'
+    if (needs_transcriptome_bam) {
+        MINIMAP2_TRANSCRIPTOME(
+            ch_reads,
+            ch_transcript_fasta.map { [ [id: 'transcriptome'], it ] }.first(),
+            true,   // bam_format
+            '',  // bam_index_extension
+            false,  // cigar_paf_format
+            false   // cigar_bam
+        )
+        ch_versions = ch_versions.mix(MINIMAP2_TRANSCRIPTOME.out.versions)
+        ch_transcriptome_bam     = MINIMAP2_TRANSCRIPTOME.out.bam
+        //ch_transcriptome_bam_bai = MINIMAP2_TRANSCRIPTOME.out.bam.join(MINIMAP2_TRANSCRIPTOME.out.index)
+    }
 
     //
     // Run alignment if either `featurecounts` or `both` is selected as quantification tool
@@ -86,6 +118,9 @@ workflow NANOTRANSEQ {
             ch_minimap2_index
         )
         ch_versions = ch_versions.mix(ALIGNMENT.out.versions)
+
+        // Genome BAM+BAI for signal-level poly(A) estimation
+        ch_genome_bam = ALIGNMENT.out.minimap2_bam.join(ALIGNMENT.out.minimap2_bai)
 
         // Generate BigWig files for visualisation in genome browsers
         BEDTOOLS_BIGWIG(
@@ -209,12 +244,11 @@ workflow NANOTRANSEQ {
     if (params.quantification_tool == 'salmon' || params.quantification_tool == 'both') {
 
         PSEUDOALIGNMENT(
+            ch_gtf,
+            ch_transcriptome_bam,
             ch_reads,
             ch_fasta,
             ch_transcript_fasta,
-            ch_gtf,
-            ch_gene_id,
-            ch_gene_attributes,
         )
         ch_versions = ch_versions.mix(PSEUDOALIGNMENT.out.versions)
 
@@ -229,6 +263,67 @@ workflow NANOTRANSEQ {
             ch_reads
         )
         ch_versions = ch_versions.mix(TRANSCRIPT_USAGE.out.versions)
+
+    }
+
+    //
+    // SUBWORKFLOW: Direct-RNA signal preparation (nanopolish index).
+    // Runs automatically when poly(A) is enabled
+    //
+    if (params.run_polya) {
+        // Read the fast5 signal directory per sample from the samplesheet
+        def sheet_dir = file(params.input).parent
+        ch_fast5_in = channel
+            .fromPath(params.input)
+            .splitCsv(header: true)
+            .map { row ->
+                if (!row.fast5) {
+                    error("--run_polya requires a 'fast5' column in the samplesheet (sample: ${row.sample})")
+                }
+                def f5 = row.fast5 ==~ /^(\/|[a-zA-Z][a-zA-Z0-9+.-]*:\/\/).*/ ?
+                    file(row.fast5, checkIfExists: true) :
+                    file("${sheet_dir}/${row.fast5}", checkIfExists: true)
+                tuple(row.sample, f5)
+            }
+            // The fast5 column takes either a directory or a tar archive of one. The
+            // archive form exists because Nextflow cannot stage a remote directory, so
+            // signal data hosted outside the repo has to travel as a single file.
+            .branch { _id, f5 ->
+                archive: f5.name ==~ /.*\.(tar\.gz|tgz|tar)$/
+                dir    : true
+            }
+
+        // Unpack only the archives; directories pass through untouched.
+        UNTAR( ch_fast5_in.archive.map { id, f5 -> tuple([ id: id ], f5) } )
+
+        ch_fast5 = ch_fast5_in.dir
+            .mix( UNTAR.out.untar.map { meta, untarred -> tuple(meta.id, untarred) } )
+
+        // Attach fast5 to reads: [ meta, reads, fast5 ]
+        ch_signal = ch_reads
+            .map { meta, reads -> tuple(meta.id, meta, reads) }
+            .join(ch_fast5)
+            .map { _id, meta, reads, fast5 -> tuple(meta, reads, fast5) }
+
+        SIGNAL_ANALYSIS(
+            ch_signal,
+            ch_transcriptome_bam,
+            ch_transcript_fasta,
+            params.run_rna_modifications || params.run_rna_methylation
+        )
+        ch_versions = ch_versions.mix(SIGNAL_ANALYSIS.out.versions)
+
+        //
+        // Poly(A) tail length (per read, genome alignment). Single module, called directly.
+        //
+        if (params.run_polya) {
+            ch_polya_in = SIGNAL_ANALYSIS.out.indexed.join(ch_genome_bam)   // [ meta, reads, index, fast5, bam, bai ]
+            NANOPOLISH_POLYA(
+                ch_polya_in,
+                ch_fasta.map { it[1] }
+            )
+            ch_versions = ch_versions.mix(NANOPOLISH_POLYA.out.versions)
+        }
 
     }
 

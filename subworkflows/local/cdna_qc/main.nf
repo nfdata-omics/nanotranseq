@@ -8,7 +8,7 @@ include { TOULLIGQC   } from '../../../modules/nf-core/toulligqc/main'
 include { NANOPLOT    } from '../../../modules/nf-core/nanoplot/main'
 include { MULTIQC     } from '../../../modules/nf-core/multiqc/main'
 
-workflow DIRECT_RNA_QC {
+workflow CDNA_QC {
     take:
     raw_reads   // raw reads input channel
 

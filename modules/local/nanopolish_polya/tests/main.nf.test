@@ -1,0 +1,112 @@
+nextflow_process {
+
+    name "Test NANOPOLISH_POLYA"
+    script "../main.nf"
+    process "NANOPOLISH_POLYA"
+    config "./nextflow.config"
+
+    tag "nanopolish"
+    tag "polya"
+    tag "module"
+
+    setup {
+        run("UNTAR") {
+            script "../../../nf-core/untar/main.nf"
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1_fast5.tar.gz", checkIfExists: true)
+                ])
+                """
+            }
+        }
+        // run("NANOPOLISH_INDEX") {
+        //     script "../../nanopolish_index/main.nf"
+        //     process {
+        //         """
+        //         input[0] = Channel.of([
+        //             [ id: 'HEK293T-WT-rep1' ],
+        //             file("\${projectDir}/tests/data/directrna/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz", checkIfExists: true),
+        //             file("\${projectDir}/tests/data/directrna/HEK293T-WT-rep1/fast5", type: 'dir', checkIfExists: true)
+        //         ])
+        //         """
+        //     }
+        // }
+        run("NANOPOLISH_INDEX") {
+            script "../../nanopolish_index/main.nf"
+            process {
+                """
+                input[0] = UNTAR.out.untar.map { meta, fast5_dir -> [
+                    meta,
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz", checkIfExists: true),
+                    fast5_dir
+                ] }
+                """
+            }
+        }
+        run("MINIMAP2_ALIGN") {
+            script "../../../nf-core/minimap2/align/main.nf"
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz", checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id: 'modification_transcriptome_subset' ],
+                    file("\${params.drna_testdata_base}/genome/drna_transcriptome.fa", checkIfExists: true)
+                ])
+                input[2] = true      // bam_format
+                input[3] = 'bai'     // bam_index_extension -> coordinate-sorted BAM + .bai
+                input[4] = false     // cigar_paf_format
+                input[5] = false     // cigar_bam
+                """
+            }
+        }
+    }
+
+    test("poly(A) tail length estimation on real direct-RNA signal") {
+
+        when {
+            process {
+                """
+                // [ meta, reads, index_sidecars, bam, bai ]
+                input[0] = NANOPOLISH_INDEX.out.indexed
+                    .join(MINIMAP2_ALIGN.out.bam)
+                    .join(MINIMAP2_ALIGN.out.index)
+
+                input[1] = file("\${params.drna_testdata_base}/genome/drna_transcriptome.fa", checkIfExists: true)
+
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def tsv    = path(process.out.polya[0][1]).readLines()
+            def header = tsv[0].split('\t')
+            def rows   = tsv[1..-1].collect { it.split('\t') }
+
+            def iLen = header.findIndexOf { it == 'polya_length' }
+            def iQc  = header.findIndexOf { it == 'qc_tag' }
+
+            assertAll(
+                // nanopolish emitted its real header
+                { assert header.contains('readname') },
+                { assert iLen >= 0 },
+                { assert iQc >= 0 },
+
+                // it actually segmented reads, not just wrote a header
+                { assert rows.size() > 0 },
+
+                // at least one read produced a usable tail-length call
+                { assert rows.any { it[iQc] == 'PASS' } },
+
+                // and those PASS calls are real positive numbers
+                { assert rows.findAll { it[iQc] == 'PASS' }.every { it[iLen] as Double > 0 } }
+            )
+        }
+    }
+}

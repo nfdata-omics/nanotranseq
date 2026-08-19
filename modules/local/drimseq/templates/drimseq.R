@@ -101,6 +101,11 @@ if (length(merged_files) > 0) {
     }
 }
 
+# dmDSdata requires gene_id/feature_id to be character (or factor). read.table coerces
+# all-numeric IDs (e.g. contig-named references like "3", "9") to integer, so force them.
+counts\$gene_id    <- as.character(counts\$gene_id)
+counts\$feature_id <- as.character(counts\$feature_id)
+
 # Create dmDSdata object
 d <- dmDSdata(counts = counts, samples = samples)
 

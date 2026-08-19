@@ -1,0 +1,73 @@
+nextflow_pipeline {
+
+    name "Test pipeline direct RNA (end-to-end poly(A))"
+    script "../main.nf"
+    tag "pipeline"
+    tag "direct_rna"
+
+    // Run with the direct-RNA profile (overrides the global test profile):
+    //   nf-test test tests/pipeline_direct_rna.nf.test --profile test_direct_rna,docker
+    //
+    // nf-schema resolves relative samplesheet paths against the launch dir, which in
+    // nf-test is a temp dir, not the repo root. So we generate the samplesheet at
+    // runtime with absolute ${projectDir} row paths (kept out of git) and point the
+    // run at it. fast5 stays a per-sample samplesheet column, as in production.
+    config "../conf/test_direct_rna.config"
+    test("direct RNA end-to-end: genome-based poly(A) + minimap2 transcriptome, DE skipped") {
+
+        setup {
+            def dataDir = "${projectDir}/tests/data/directrna"
+            new File(dataDir).mkdirs()
+            def url = "https://raw.githubusercontent.com/nfdata-omics/test-datasets/nanotranseq/direct_rna"
+            new File("${dataDir}/samplesheet_directrna.generated.csv").text = """sample,replicate,condition,fastq_1,fast5
+HEK293T-WT,1,wt,${url}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz,${url}/HEK293T-WT-rep1/HEK293T-WT-rep1_fast5.tar.gz
+HEK293T-METTL3-KO,1,ko,${url}/HEK293T-METTL3-KO-rep1/HEK293T-METTL3-KO-rep1.fastq.gz,${url}/HEK293T-METTL3-KO-rep1/HEK293T-METTL3-KO-rep1_fast5.tar.gz
+"""
+        }
+
+        when {
+            params {
+                input  = "${projectDir}/tests/data/directrna/samplesheet_directrna.generated.csv"
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def names = workflow.trace.tasks().collect { it.name }
+            def polya = path("$outputDir/polya/HEK293T-WT/HEK293T-WT.polya.tsv")
+
+            assertAll(
+                { assert snapshot(
+                // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
+                    removeNextflowVersion("$outputDir/pipeline_info/nanotranseq_software_mqc_versions.yml")).match()
+                },
+                { assert workflow.success },
+
+                // poly(A) ran end-to-end off the GENOME alignment (the real pipeline path,
+                // unlike the module test which used a transcriptome reference)
+                { assert names.any { it.contains('NANOPOLISH_POLYA') },
+                    "NANOPOLISH_POLYA did not run" },
+                { assert polya.exists(),
+                    "poly(A) TSV not produced at polya/HEK293T-WT/" },
+
+                // real poly(A) tails measured from signal: at least one PASS with length > 0
+                { assert polya.readLines().drop(1).any { def c = it.split('\t'); c[9] == 'PASS' && (c[8] as Double) > 0 },
+                    "no read produced a PASS poly(A) length" },
+
+                // minimap2 transcriptome alignment ran (quantification_tool = 'both')
+                { assert names.any { it.contains('MINIMAP2_TRANSCRIPTOME') },
+                    "MINIMAP2_TRANSCRIPTOME did not run" },
+
+                // DTU ran off the transcriptome quant across the two conditions (wt vs ko)
+                { assert names.any { it.contains('DRIMSEQ') },
+                    "DRIMSEQ (DTU) did not run" },
+                { assert names.any { it.contains('ISOFORM_SWITCH') },
+                    "ISOFORM_SWITCH (DTU) did not run" },
+
+                // DE intentionally skipped (no deseq2_formula -> empty channel)
+                { assert !names.any { it.contains('DESEQ2') },
+                    "a DESeq2 step ran; DE was supposed to be skipped" }
+            )
+        }
+    }
+}

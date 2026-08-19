@@ -37,8 +37,8 @@ if (length(merged_files) > 0) {
     countData <- as.matrix(d_merged[, samples\$sample_id])
     rownames(countData) <- d_merged\$feature_id
 
-    geneIDs <- d_merged\$gene_id
-    featureIDs <- d_merged\$feature_id
+    geneIDs <- as.character(d_merged\$gene_id)
+    featureIDs <- as.character(d_merged\$feature_id)
 
 } else {
     # Individual files logic (simplified)

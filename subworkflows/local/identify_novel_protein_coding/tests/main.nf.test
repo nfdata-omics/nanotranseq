@@ -3,6 +3,7 @@ nextflow_workflow {
     name "Test IDENTIFY_NOVEL_PROTEIN_CODING subworkflow"
     script "../main.nf"
     workflow "IDENTIFY_NOVEL_PROTEIN_CODING"
+    config "./nextflow.config"
 
     tag "identify_novel_protein_coding"
     tag "coding_potential"

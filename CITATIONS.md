@@ -70,10 +70,6 @@
 
 > Liao Y, Smyth GK, Shi W. featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics. 2014 Apr 1;30(7):923-930. doi: 10.1093/bioinformatics/btt656.
 
-- [Salmon](https://doi.org/10.1038/nmeth.4197)
-
-> Patro R, Duggal G, Love MI, Irizarry RA, Kingsford C. Salmon provides fast and bias-aware quantification of transcript expression. Nat Methods. 2017 Apr;14(4):417-419. doi: 10.1038/nmeth.4197.
-
 - [tximport](https://doi.org/10.12688/f1000research.7563.1)
 
 > Soneson C, Love MI, Robinson MD. Differential analyses for RNA-seq: transcript-level estimates improve gene-level inferences. F1000Research. 2015;4:1521. doi: 10.12688/f1000research.7563.1.
@@ -97,6 +93,20 @@
 - [IsoformSwitchAnalyzeR](https://doi.org/10.1093/bioinformatics/btz247)
 
 > Vitting-Seerup K, Sandelin A. IsoformSwitchAnalyzeR: analysis of changes in genome-wide patterns of alternative splicing and its functional consequences. Bioinformatics. 2019 Nov 1;35(21):4469-4471. doi: 10.1093/bioinformatics/btz247.
+
+- [nanopolish](https://pubmed.ncbi.nlm.nih.gov/26076426/)
+
+> Loman NJ, Quick J, Simpson JT. A complete bacterial genome assembled de novo using only nanopore sequencing data. Nat Methods. 2015 Aug;12(8):733-5. doi: 10.1038/nmeth.3444. Epub 2015 Jun 15. PubMed PMID: 26076426.
+
+> Used for `index`, `eventalign` (signal-to-reference alignment consumed by m6anet and xpore) and `polya` (poly(A) tail length estimation).
+
+- [m6anet](https://pubmed.ncbi.nlm.nih.gov/36357692/)
+
+> Hendra C, Pratanwanich PN, Wan YK, Goh WSS, Thiery A, Göke J. Detection of m6A from direct RNA sequencing using a multiple instance learning framework. Nat Methods. 2022 Dec;19(12):1590-1598. doi: 10.1038/s41592-022-01666-1. Epub 2022 Nov 10. PubMed PMID: 36357692.
+
+- [xPore](https://pubmed.ncbi.nlm.nih.gov/34282325/)
+
+> Pratanwanich PN, Yao F, Chen Y, Koh CWQ, Wan YK, Hendra C, Poon P, Goh YT, Yap PML, Chooi JY, Chng WJ, Ng SB, Thiery A, Goh WSS, Göke J. Identification of differential RNA modifications from nanopore direct RNA sequencing with xPore. Nat Biotechnol. 2021 Nov;39(11):1394-1402. doi: 10.1038/s41587-021-00949-w. Epub 2021 Jul 19. PubMed PMID: 34282325.
 
 ## Software packaging/containerisation tools
 

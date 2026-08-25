@@ -18,13 +18,13 @@ qc/{post_chopper,raw_reads}/**/TOULLIGQC/**/images/*.{html,js}
 qc/{post_chopper,raw_reads}/**/TOULLIGQC/*Toulligqc-report-*/**
 qc/post_chopper/**/CHOPPER/*.{gz}
 alignment/**/MINIMAP2_ALIGN/*.{bam,bai}
+alignment/bedtools_bamtobed/*.bed
+alignment/ucsc_bedtobigbed/*.bigBed
 quantification/featureCounts/*.{txt,summary,tsv}
 quantification/stringtie_merge/*.{gtf}
 quantification/samples/**/**/*.{gtf,txt,tsv}
-pseudoalignment/salmon/salmon/*.{json,bin,log}
-pseudoalignment/salmon/*.{log,bin,json}
-pseudoalignment/salmon/**/**/*.{log,gz,json}
 pseudoalignment/merged_results/*.{tsv}
+pseudoalignment/oarfish/**/*.meta_info.json
 pipeline_info/*.{html,json,txt,yml}
 transcript_usage/isoform_switch/*.{pdf}
 transcript_usage/drimseq/*.{pdf}

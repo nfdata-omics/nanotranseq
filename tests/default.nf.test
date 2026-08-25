@@ -30,4 +30,37 @@ nextflow_pipeline {
             )
         }
     }
+
+    test("-profile test exercises the direct cDNA branch (direct_rna = false)") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def tasks = workflow.trace.tasks()
+            def names = tasks.collect { it.name }
+
+            assertAll(
+                { assert workflow.success },
+
+                // CDNA_QC is gated on !direct_rna, so Chopper trimming must have run.
+                // With direct_rna = true the whole subworkflow is silently skipped.
+                { assert names.any { it.contains('CHOPPER') },
+                    "CHOPPER did not run: the cDNA branch (!direct_rna) was skipped" },
+
+                // Reads fed downstream are the trimmed ones, so that branch's QC ran on them
+                { assert names.any { it.contains('CDNA_QC:FASTQC') } },
+                { assert names.any { it.contains('CDNA_QC:NANOPLOT') } },
+                { assert names.any { it.contains('CDNA_QC:TOULLIGQC') } },
+                { assert names.any { it.contains('CDNA_QC:MULTIQC') } },
+
+                // Signal-level analyses must stay off: cDNA has no native poly(A) tail
+                { assert !names.any { it.contains('NANOPOLISH') },
+                    "a nanopolish step ran on cDNA data, where the poly(A) tail does not survive reverse transcription" }
+            )
+        }
+    }
 }

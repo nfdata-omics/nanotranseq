@@ -9,7 +9,8 @@ include { MULTIQC     } from '../../../modules/nf-core/multiqc/main'
 
 workflow RAW_READS_QC {
     take:
-    reads    // Raw reads input channel
+    reads       // Raw reads input channel
+    extra_mqc   // channel: extra files for MultiQC (custom content), may be empty
 
     main:
     versions = Channel.empty()
@@ -19,10 +20,14 @@ workflow RAW_READS_QC {
     fastqc_zip = FASTQC.out.zip
     fastqc_html = FASTQC.out.html
 
+    // FASTQC zips plus whatever custom content the run produced (m6anet, xpore).
+    ch_multiqc_in = FASTQC.out.zip.map { it[1] }.mix(extra_mqc).collect()
+
     MULTIQC(
-          FASTQC.out.zip
-              .collect { it[1] }
-              .map { files -> tuple([:], files, [], [], [], []) }
+          //FASTQC.out.zip
+          //    .collect { it[1] }
+          //    .map { files -> tuple([:], files, [], [], [], []) }
+            ch_multiqc_in.map { files -> tuple([:], files, [], [], [], []) }
     )
 
     // Run TOULLIGQC

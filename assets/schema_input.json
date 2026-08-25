@@ -42,6 +42,12 @@
                 "exists": true,
                 "pattern": "^([\\S\\s]*\\/)?[^\\s\\/]+\\.f(ast)?q\\.gz$",
                 "errorMessage": "FastQ file for reads 2 cannot contain spaces and must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "fast5": {
+                "type": "string",
+                "format": "path",
+                "exists": true,
+                "errorMessage": "fast5 must be a path to an existing directory of raw FAST5/POD5 signal"
             }
         },
         "required": ["sample", "fastq_1", "condition"]

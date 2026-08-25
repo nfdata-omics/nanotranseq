@@ -1,0 +1,71 @@
+name: xpore_diffmod
+description: Detect differential RNA modifications between conditions from Nanopore direct-RNA signal
+keywords:
+  - rna modification
+  - rna methylation
+  - differential modification
+  - direct rna
+  - nanopore
+tools:
+  - xpore:
+      description: Bayesian mixture modelling of Nanopore direct-RNA signal to detect
+        differential RNA modifications between conditions. `diffmod` compares the
+        per-site current distributions of two or more groups of replicates.
+      homepage: https://github.com/GoekeLab/xpore
+      documentation: https://xpore.readthedocs.io/
+      tool_dev_url: https://github.com/GoekeLab/xpore
+      doi: "10.1038/s41587-021-00949-w"
+      licence: ["MIT"]
+      identifier: biotools:xpore
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map identifying the comparison, not a single sample
+          e.g. [ id:'xpore' ]
+    - samples:
+        type: list
+        description: |
+          List of [ condition, id ] pairs, parallel to `dataprep_dirs` and used to build
+          the xpore config.yml. Each staged directory is named `dataprep_<id>`.
+    - dataprep_dirs:
+        type: directory
+        description: XPORE_DATAPREP output directories, one per replicate, for every
+          condition being compared
+output:
+  diffmod:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map identifying the comparison
+            e.g. [ id:'xpore' ]
+      - "diffmod/diffmod.table":
+          type: file
+          description: Per-site differential modification rate, p-value and z-score for
+            each pairwise comparison of conditions
+          pattern: "diffmod/diffmod.table"
+          ontologies:
+            - edam: http://edamontology.org/format_3475 # TSV
+  majority:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map identifying the comparison
+            e.g. [ id:'xpore' ]
+      - "diffmod/majority_direction_kmer_diffmod.table":
+          type: file
+          description: Sites filtered to the majority modification direction per k-mer
+          pattern: "diffmod/majority_direction_kmer_diffmod.table"
+          ontologies:
+            - edam: http://edamontology.org/format_3475 # TSV
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750 # YAML
+authors:
+  - "@nfdata-omics"
+maintainers:
+  - "@nfdata-omics"

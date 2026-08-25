@@ -1,0 +1,80 @@
+nextflow_pipeline {
+
+    name "Test pipeline direct RNA (end-to-end RNA modifications + methylation)"
+    script "../main.nf"
+    tag "pipeline"
+    tag "direct_rna"
+    tag "methylation"
+
+    config "../conf/test_methylation.config"
+    test("direct RNA end-to-end: eventalign -> m6anet + xpore, poly(A) off") {
+
+        setup {
+            def dataDir = "${projectDir}/tests/data/directrna"
+            def url = "https://raw.githubusercontent.com/nfdata-omics/test-datasets/nanotranseq/direct_rna"
+            new File("${dataDir}/samplesheet_methylation.generated.csv").text = """sample,replicate,condition,fastq_1,fast5
+HEK293T-WT,1,wt,${url}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz,${url}/HEK293T-WT-rep1/HEK293T-WT-rep1_fast5.tar.gz
+HEK293T-METTL3-KO,1,ko,${url}/HEK293T-METTL3-KO-rep1/HEK293T-METTL3-KO-rep1.fastq.gz,${url}/HEK293T-METTL3-KO-rep1/HEK293T-METTL3-KO-rep1_fast5.tar.gz
+"""
+        }
+
+        when {
+            params {
+                input  = "${projectDir}/tests/data/directrna/samplesheet_methylation.generated.csv"
+                outdir = "$outputDir"
+            }
+        }
+
+        then {
+            def names  = workflow.trace.tasks().collect { it.name }
+            def m6a    = path("$outputDir/methylation/rna_modifications/HEK293T-WT/HEK293T-WT.m6a_sites.csv")
+            def diff   = path("$outputDir/methylation/rna_methylation/diffmod/diffmod.table")
+
+            assertAll(
+                { assert workflow.success },
+
+                { assert snapshot(
+                    removeNextflowVersion("$outputDir/pipeline_info/nanotranseq_software_mqc_versions.yml")
+                ).match() },
+
+                // The signal branch is reachable through the modification flags alone:
+                // run_polya is false in this profile.
+                { assert names.any { it.contains('NANOPOLISH_INDEX') },
+                    "NANOPOLISH_INDEX did not run; the signal branch is gated on poly(A) again" },
+                { assert !names.any { it.contains('NANOPOLISH_POLYA') },
+                    "NANOPOLISH_POLYA ran; poly(A) was supposed to be off" },
+
+                // The transcriptome alignment is re-sorted by coordinate for nanopolish,
+                // which needs a sorted+indexed BAM (oarfish gets the name-sorted one).
+                { assert names.any { it.contains('MINIMAP2_TRANSCRIPTOME') },
+                    "MINIMAP2_TRANSCRIPTOME did not run" },
+                { assert names.any { it.contains('SAMTOOLS_SORT') },
+                    "the transcriptome BAM was not re-sorted for nanopolish" },
+                { assert names.any { it.contains('NANOPOLISH_EVENTALIGN') },
+                    "NANOPOLISH_EVENTALIGN did not run" },
+
+                // Per-sample m6A calling
+                { assert names.any { it.contains('M6ANET') },
+                    "M6ANET did not run" },
+                { assert m6a.exists(),
+                    "m6A table not produced at rna_modifications/HEK293T-WT/" },
+                { assert m6a.readLines()[0].split(',').contains('mod_ratio'),
+                    "m6A table is missing the stoichiometry column" },
+
+                // Differential methylation across the two conditions. Row counts are not
+                // asserted: one replicate per condition is below what xpore needs to call
+                // significance, so an empty table is a legitimate result here.
+                { assert names.any { it.contains('XPORE_DATAPREP') },
+                    "XPORE_DATAPREP did not run" },
+                { assert names.any { it.contains('XPORE_DIFFMOD') },
+                    "XPORE_DIFFMOD did not run" },
+                { assert diff.exists(),
+                    "diffmod table not produced at rna_methylation/diffmod/" },
+
+                // DE intentionally skipped (no deseq2_formula -> empty channel)
+                { assert !names.any { it.contains('DESEQ2') },
+                    "a DESeq2 step ran; DE was supposed to be skipped" }
+            )
+        }
+    }
+}

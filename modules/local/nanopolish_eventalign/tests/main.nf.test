@@ -1,0 +1,116 @@
+nextflow_process {
+
+    name "Test NANOPOLISH_EVENTALIGN"
+    script "../main.nf"
+    process "NANOPOLISH_EVENTALIGN"
+    config "./nextflow.config"
+
+    tag "nanopolish"
+    tag "eventalign"
+    tag "module"
+
+    setup {
+        // The raw signal lives remotely as a tarball — Nextflow cannot stage a remote
+        // directory — so it is unpacked here, the same way the pipeline does it.
+        run("UNTAR") {
+            script "../../../nf-core/untar/main.nf"
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1_fast5.tar.gz", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        run("NANOPOLISH_INDEX") {
+            script "../../nanopolish_index/main.nf"
+            process {
+                """
+                input[0] = UNTAR.out.untar.map { meta, fast5_dir -> [
+                    meta,
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz", checkIfExists: true),
+                    fast5_dir
+                ] }
+                """
+            }
+        }
+
+        // eventalign works in transcriptomic coordinates and needs a coordinate-sorted,
+        // indexed BAM — hence bam_index_extension 'bai' here, unlike the pipeline, where
+        // the transcriptome BAM is name-sorted for oarfish and re-sorted in SIGNAL_ANALYSIS.
+        run("MINIMAP2_ALIGN") {
+            script "../../../nf-core/minimap2/align/main.nf"
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.fastq.gz", checkIfExists: true)
+                ])
+                input[1] = Channel.of([
+                    [ id: 'drna_transcriptome' ],
+                    file("\${params.drna_testdata_base}/genome/drna_transcriptome.fa", checkIfExists: true)
+                ])
+                input[2] = true      // bam_format
+                input[3] = 'bai'     // bam_index_extension -> coordinate-sorted BAM + .bai
+                input[4] = false     // cigar_paf_format
+                input[5] = false     // cigar_bam
+                """
+            }
+        }
+    }
+
+    test("eventalign of real direct-RNA signal against the transcriptome") {
+
+        when {
+            process {
+                """
+                // [ meta, reads, index_sidecars, fast5_dir, bam, bai ] -- the fast5 dir
+                // has to be staged too: the readdb points at `<dir>/<read>.fast5`.
+                input[0] = NANOPOLISH_INDEX.out.indexed
+                    .join(MINIMAP2_ALIGN.out.bam)
+                    .join(MINIMAP2_ALIGN.out.index)
+
+                input[1] = file("\${params.drna_testdata_base}/genome/drna_transcriptome.fa", checkIfExists: true)
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            // The eventalign table is huge and its row order follows read order, so it is
+            // checked structurally rather than snapshotted.
+            def lines  = path(process.out.eventalign[0][1]).readLines()
+            def header = lines[0].split('\t')
+            def rows   = lines[1..-1].collect { it.split('\t') }
+
+            def iContig = header.findIndexOf { it == 'contig' }
+            def iPos    = header.findIndexOf { it == 'position' }
+            def iKmer   = header.findIndexOf { it == 'reference_kmer' }
+            def iMean   = header.findIndexOf { it == 'event_level_mean' }
+
+            assertAll(
+                // nanopolish emitted its real header, including the columns m6anet and
+                // xpore read
+                { assert iContig >= 0 },
+                { assert iPos >= 0 },
+                { assert iKmer >= 0 },
+                { assert iMean >= 0 },
+                { assert header.contains('event_index') },
+
+                // signal was actually aligned, not just a header written
+                { assert rows.size() > 0 },
+
+                // events are anchored to the mini-genome transcripts
+                { assert rows.every { it[iContig] } },
+
+                // and carry real numeric measurements
+                { assert rows.every { it[iPos] ==~ /\d+/ } },
+                { assert rows.every { it[iKmer] ==~ /[ACGTU]{5}/ } },
+                { assert rows.every { (it[iMean] as Double) > 0 } }
+            )
+        }
+    }
+}

@@ -1,72 +1,61 @@
-include { SALMON_INDEX      } from '../../../modules/nf-core/salmon/index/main'
-include { SALMON_QUANT      } from '../../../modules/nf-core/salmon/quant/main'
-include { CUSTOM_TX2GENE    } from '../../../modules/nf-core/custom/tx2gene'
-include { TXIMETA_TXIMPORT  } from '../../../modules/nf-core/tximeta/tximport'
+include { OARFISH            } from '../../../modules/local/oarfish/main'
+include { TX2GENE_GTF        } from '../../../modules/local/tx2gene_gtf/main'
+include { TXIMPORT           } from '../../../modules/local/tximport_transcript/main'
 
+//
+// ONT-native transcript quantification for DTU.
+// Default is oarfish: an EM over long-read transcriptome alignments, reliable on noisy
+// long reads. Salmon is available as an opt-in (`--pseudoaligner salmon`) but experimental
+// on ONT — its k-mer selective alignment is unreliable on noisy long reads. tximport
+// (type-aware) builds gene/transcript matrices from either quantifier.
+//
 workflow PSEUDOALIGNMENT {
 
     take:
-    reads                           // channel: reads: val(meta), path(fastq)
-    fasta                           // channel: fasta: val(meta), path(fasta)
-    transcript_fasta                // channel: transcript_fasta: path(fasta)
-    reference_gtf                   // channel: reference GTF: path(gtf)
-    gene_id                         // channel: attributed gene ID: val
-    gene_attributes                 // channel: extra gene attributes: val
+    reference_gtf       // channel: reference GTF: path(gtf)
+    transcriptome_bam   // channel: [meta, bam] reads-to-transcriptome (minimap2 -ax map-ont), used by oarfish
 
     main:
     versions = Channel.empty()
 
-    // Index FASTAs
-    SALMON_INDEX(
-        fasta.collect{it[1]},
-        transcript_fasta,
+    OARFISH(
+            transcriptome_bam
+        )
+    versions = versions.mix(OARFISH.out.versions)
+    ch_quant   = OARFISH.out.quant          // [meta, *.quant]
+    quant_type = Channel.value('oarfish')
+
+    //
+    // Build tx2gene mapping from the reference GTF.
+    //
+    TX2GENE_GTF(
+        reference_gtf.map { gtf -> tuple([id: 'reference'], gtf) }
     )
+    versions = versions.mix(TX2GENE_GTF.out.versions)
 
-    salmon_index = SALMON_INDEX.out.index
-    versions = versions.mix(SALMON_INDEX.out.versions)
+    //
+    // Import all samples' quants into gene/transcript matrices (type-aware).
+    //
+    ch_quants = ch_quant
+        .map { it[1] }
+        .collect()
+        .map { quants -> tuple([id: 'all_samples'], quants) }
 
-    // Quantification
-    SALMON_QUANT(
-        reads,
-        salmon_index.first(),
-        reference_gtf,
-        transcript_fasta.first(),
-        Channel.value(false),
-        Channel.value(false),
+    TXIMPORT(
+        ch_quants,
+        TX2GENE_GTF.out.tx2gene,
+        quant_type
     )
+    versions = versions.mix(TXIMPORT.out.versions)
 
-    versions = versions.mix(SALMON_QUANT.out.versions)
-    salmon_out = SALMON_QUANT.out.results
-
-    // Build tx2gene GTF reference
-    CUSTOM_TX2GENE (
-        reference_gtf.map { [ [id:"reference gtf"], it ] },
-        salmon_out.collect{ it[1] }.map{ [ [id:"all_samples"], it] },
-        Channel.value('salmon'),
-        gene_id,
-        gene_attributes,
-    )
-    versions = versions.mix(CUSTOM_TX2GENE.out.versions)
-
-    // Parse quantification files from all samples
-    TXIMETA_TXIMPORT (
-        salmon_out
-            .map{ it[1] }
-            .collect()
-            .map{ [ [id:"all_samples"], it] },
-        CUSTOM_TX2GENE.out.tx2gene,
-        Channel.value('salmon'),
-    )
-    versions = versions.mix(TXIMETA_TXIMPORT.out.versions)
-
-    tpm_gene = TXIMETA_TXIMPORT.out.tpm_gene
-    counts_gene = TXIMETA_TXIMPORT.out.counts_gene
-    counts_gene_length_scaled = TXIMETA_TXIMPORT.out.counts_gene_length_scaled
-    counts_gene_scaled = TXIMETA_TXIMPORT.out.counts_gene_scaled
-    lengths_gene = TXIMETA_TXIMPORT.out.lengths_gene
-    tpm_transcript = TXIMETA_TXIMPORT.out.tpm_transcript
-    counts_transcript = TXIMETA_TXIMPORT.out.counts_transcript
-    lengths_transcript = TXIMETA_TXIMPORT.out.lengths_transcript
+    tpm_gene                  = TXIMPORT.out.tpm_gene
+    counts_gene               = TXIMPORT.out.counts_gene
+    counts_gene_length_scaled = TXIMPORT.out.counts_gene_length_scaled
+    counts_gene_scaled        = TXIMPORT.out.counts_gene_scaled
+    lengths_gene              = TXIMPORT.out.lengths_gene
+    tpm_transcript            = TXIMPORT.out.tpm_transcript
+    counts_transcript         = TXIMPORT.out.counts_transcript
+    lengths_transcript        = TXIMPORT.out.lengths_transcript
 
     emit:
     versions
@@ -79,5 +68,6 @@ workflow PSEUDOALIGNMENT {
     tpm_transcript
     counts_transcript
     lengths_transcript
+    quant = ch_quant
 
 }

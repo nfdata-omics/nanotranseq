@@ -1,0 +1,54 @@
+nextflow_process {
+
+    name "Test M6ANET"
+    script "../main.nf"
+    process "M6ANET"
+    config "./nextflow.config"
+
+    tag "m6anet"
+    tag "methylation"
+    tag "module"
+
+    // Consumes a pre-computed eventalign fixture instead of re-running the whole signal
+    // chain (UNTAR -> NANOPOLISH_INDEX -> minimap2 -> eventalign). That chain is already
+    // covered by the NANOPOLISH_EVENTALIGN module test; repeating it here would pay for
+    // the expensive step four times across the suite.
+    test("m6A site calling from a direct-RNA eventalign table") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.eventalign.txt", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def csv    = path(process.out.sites[0][1]).readLines()
+            def header = csv[0].split(',')
+
+            assertAll(
+                // m6anet inference emitted its real per-site table
+                { assert header.contains('transcript_id') },
+                { assert header.contains('transcript_position') },
+                { assert header.contains('n_reads') },
+                { assert header.contains('probability_modified') },
+                { assert header.contains('mod_ratio') },
+
+                // Row count is deliberately not asserted: the test data is a handful of
+                // reads over three transcripts, and m6anet needs ~20 reads per site, so a
+                // table with only a header is a legitimate result here. Any rows present
+                // must still be well formed.
+                { assert csv.drop(1).every { def c = it.split(','); c.size() == header.size() } },
+                { assert csv.drop(1).every { def c = it.split(',')
+                        def p = c[header.findIndexOf { h -> h == 'probability_modified' }] as Double
+                        p >= 0 && p <= 1 } }
+            )
+        }
+    }
+}

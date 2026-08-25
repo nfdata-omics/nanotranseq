@@ -1,0 +1,126 @@
+name: tximport_oarfish
+description: Import oarfish transcript quantifications into gene/transcript matrices for DTU
+keywords:
+  - tximport
+  - oarfish
+  - long read
+  - quantification
+  - dtu
+tools:
+  - tximeta:
+      description: Import and summarise transcript-level quantifications (oarfish-aware,
+        tximport >= 1.32). Local copy of the nf-core tximeta/tximport module patched
+        for oarfish *.quant inputs.
+      homepage: https://bioconductor.org/packages/tximeta/
+      documentation: https://bioconductor.org/packages/tximeta/
+      doi: "10.1371/journal.pcbi.1007664"
+      licence: ["GPL-2"]
+      identifier: ""
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing run information
+          e.g. [ id:'all_samples' ]
+    - "quants/*":
+        type: file
+        description: Per-sample oarfish quantifications (<sample>.quant)
+        pattern: "*.quant"
+        ontologies: []
+  - - meta2:
+        type: map
+        description: |
+          Groovy Map for the tx2gene table
+          e.g. [ id:'reference' ]
+    - tx2gene:
+        type: file
+        description: transcript-to-gene mapping table
+        pattern: "*.tsv"
+        ontologies: []
+  - - quant_type:
+        type: string
+        description: Quantification method (use 'oarfish')
+output:
+  tpm_gene:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*gene_tpm.tsv":
+          type: file
+          description: Gene-level TPM matrix
+          pattern: "*gene_tpm.tsv"
+          ontologies: []
+  counts_gene:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*gene_counts.tsv":
+          type: file
+          description: Gene-level counts matrix
+          pattern: "*gene_counts.tsv"
+          ontologies: []
+  counts_gene_length_scaled:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*gene_counts_length_scaled.tsv":
+          type: file
+          description: Length-scaled gene counts
+          pattern: "*gene_counts_length_scaled.tsv"
+          ontologies: []
+  counts_gene_scaled:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*gene_counts_scaled.tsv":
+          type: file
+          description: Scaled gene counts
+          pattern: "*gene_counts_scaled.tsv"
+          ontologies: []
+  lengths_gene:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*gene_lengths.tsv":
+          type: file
+          description: Gene lengths
+          pattern: "*gene_lengths.tsv"
+          ontologies: []
+  tpm_transcript:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*transcript_tpm.tsv":
+          type: file
+          description: Transcript-level TPM matrix
+          pattern: "*transcript_tpm.tsv"
+          ontologies: []
+  counts_transcript:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*transcript_counts.tsv":
+          type: file
+          description: Transcript-level counts matrix (DTU input)
+          pattern: "*transcript_counts.tsv"
+          ontologies: []
+  lengths_transcript:
+    - - meta:
+          type: map
+          description: Groovy Map containing run information
+      - "*transcript_lengths.tsv":
+          type: file
+          description: Transcript lengths
+          pattern: "*transcript_lengths.tsv"
+          ontologies: []
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750 # YAML
+authors:
+  - "@nfdata-omics"
+maintainers:
+  - "@nfdata-omics"

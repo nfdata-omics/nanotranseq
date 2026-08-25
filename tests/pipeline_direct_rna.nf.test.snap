@@ -1,0 +1,101 @@
+{
+    "direct RNA end-to-end: genome-based poly(A) + minimap2 transcriptome, DE skipped": {
+        "content": [
+            {
+                "BEDTOOLS_BAMTOBED": {
+                    "bedtools": "2.31.1"
+                },
+                "BEDTOOLS_GENOMECOV": {
+                    "bedtools": "2.31.1"
+                },
+                "DRIMSEQ": {
+                    "r-base": "4.4.2",
+                    "bioconductor-drimseq": "1.34.0"
+                },
+                "FASTQC": {
+                    "fastqc": "0.12.1"
+                },
+                "FILTER_GFFCOMPARE_CLASSES": {
+                    "python": "3.11.9"
+                },
+                "GFFCOMPARE_NOVEL_TRANSCRIPTS": {
+                    "gffcompare": "0.12.6"
+                },
+                "GFFREAD_NOVEL_TRANSCRIPTS": {
+                    "gffread": "0.12.7"
+                },
+                "ISOFORM_SWITCH": {
+                    "r-base": "4.4.2",
+                    "bioconductor-isoformswitchanalyzer": "2.6.0"
+                },
+                "MINIMAP2_ALIGN": {
+                    "minimap2": "2.29-r1283",
+                    "samtools": 1.21
+                },
+                "MINIMAP2_INDEX": {
+                    "minimap2": "2.29-r1283"
+                },
+                "MINIMAP2_TRANSCRIPTOME": {
+                    "minimap2": "2.29-r1283",
+                    "samtools": 1.21
+                },
+                "MULTIQC": {
+                    "multiqc": 1.35
+                },
+                "NANOPLOT": {
+                    "nanoplot": "1.46.1"
+                },
+                "NANOPOLISH_INDEX": {
+                    "nanopolish": "0.14.0"
+                },
+                "NANOPOLISH_POLYA": {
+                    "nanopolish": "0.14.0"
+                },
+                "OARFISH": {
+                    "oarfish": "0.10.0"
+                },
+                "SAMTOOLS_FAIDX": {
+                    "samtools": "1.23.1"
+                },
+                "STRINGTIE2": {
+                    "stringtie2": "2.1.4"
+                },
+                "STRINGTIE_MERGE": {
+                    "stringtie": "2.2.1"
+                },
+                "SUBREAD_FEATURECOUNTS_GENES": {
+                    "subread": "2.0.6"
+                },
+                "SUBREAD_FEATURECOUNTS_TRANSCRIPTS": {
+                    "subread": "2.0.6"
+                },
+                "TOULLIGQC": {
+                    "toulligqc": "2.7.1"
+                },
+                "TX2GENE_GTF": {
+                    "python": "3.9.5"
+                },
+                "TXIMPORT": {
+                    "bioconductor-tximeta": "1.24.0"
+                },
+                "UCSC_BEDGRAPHTOBIGWIG": {
+                    "ucsc": 482
+                },
+                "UCSC_BEDTOBIGBED": {
+                    "ucsc": 482
+                },
+                "UNTAR": {
+                    "untar": 1.34
+                },
+                "Workflow": {
+                    "nfdata-omics/nanotranseq": "v1.0.0dev"
+                }
+            }
+        ],
+        "timestamp": "2026-08-19T11:38:42.968259",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.4"
+        }
+    }
+}

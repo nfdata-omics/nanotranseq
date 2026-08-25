@@ -50,6 +50,13 @@
                     "enum": ["featurecounts", "oarfish", "both"],
                     "default": "featurecounts"
                 },
+                "dtu_tool": {
+                    "type": "string",
+                    "default": "drimseq",
+                    "enum": ["drimseq", "dexseq"],
+                    "description": "Statistical method for differential transcript usage.",
+                    "fa_icon": "fas fa-chart-bar"
+                },
                 "novel_class_codes": {
                     "type": "string",
                     "description": "Comma-separated gffcompare class codes to keep as novel transcript candidates for coding-potential analysis.",
@@ -114,6 +121,21 @@
                     "type": "boolean",
                     "description": "Run SQANTI3 structural classification and QC on assembled transcripts.",
                     "default": true
+                },
+                "run_polya": {
+                    "type": "boolean",
+                    "description": "Estimate poly(A) tail length per read (nanopolish polya). Direct-RNA input with raw signal (FAST5) required. Signal preparation runs automatically. Produces a per-read TSV; no between-condition comparison is performed.",
+                    "default": false
+                },
+                "run_rna_modifications": {
+                    "type": "boolean",
+                    "description": "Detect and quantify RNA modifications per sample (m6anet, m6A). Direct-RNA input with raw signal (FAST5) and --transcript_fasta required. Signal preparation runs automatically.",
+                    "default": false
+                },
+                "run_rna_methylation": {
+                    "type": "boolean",
+                    "description": "Detect and quantify differential RNA methylation between conditions (xpore). Direct-RNA input with raw signal, --transcript_fasta, and a design of >=2 conditions with >=3 replicates each (samplesheet 'condition' column) required. Signal preparation runs automatically.",
+                    "default": false
                 },
                 "email": {
                     "type": "string",

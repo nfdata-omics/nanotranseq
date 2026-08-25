@@ -1,0 +1,54 @@
+name: m6anet
+description: Detect N6-methyladenosine (m6A) sites from Nanopore direct-RNA signal
+keywords:
+  - m6a
+  - rna modification
+  - direct rna
+  - nanopore
+  - epitranscriptome
+tools:
+  - m6anet:
+      description: Neural-network detection of m6A modifications from nanopolish eventalign
+        signal, reporting per-site modification probability and stoichiometry.
+      homepage: https://github.com/GoekeLab/m6anet
+      documentation: https://m6anet.readthedocs.io/
+      tool_dev_url: https://github.com/GoekeLab/m6anet
+      doi: "10.1038/s41592-022-01666-1"
+      licence: ["MIT"]
+      identifier: biotools:m6anet
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test' ]
+    - eventalign:
+        type: file
+        description: nanopolish eventalign table
+        pattern: "*.eventalign.txt"
+        ontologies:
+          - edam: http://edamontology.org/format_3475 # TSV
+output:
+  sites:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test' ]
+      - "*.m6a_sites.csv":
+          type: file
+          description: Per-site m6A modification probability and stoichiometry
+          pattern: "*.m6a_sites.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752 # CSV
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750 # YAML
+authors:
+  - "@nfdata-omics"
+maintainers:
+  - "@nfdata-omics"

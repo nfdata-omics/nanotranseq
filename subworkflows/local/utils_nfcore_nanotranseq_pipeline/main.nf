@@ -81,7 +81,8 @@ workflow PIPELINE_INITIALISATION {
         show_hidden,
         before_text,
         after_text,
-        command
+        command,
+        false
     )
 
     //
@@ -144,8 +145,21 @@ workflow PIPELINE_INITIALISATION {
     //
     // Validate params.quantification_tool
     //
-    if ( params.quantification_tool != 'featurecounts' && params.quantification_tool != 'salmon' && params.quantification_tool != 'both' ) {
-        exit 1, "Invalid quantification tool selected. Use either `featurecounts` or `salmon`"
+    if ( params.quantification_tool != 'featurecounts' && params.quantification_tool != 'oarfish' && params.quantification_tool != 'both' ) {
+        error("Invalid quantification tool selected. Use either `featurecounts` or `oarfish`")
+    }
+
+    //
+    // oarfish quant and the eventalign step (m6A modifications / methylation) align
+    // against the transcriptome, so a transcript FASTA is required for either.
+    // (poly(A) uses the genome alignment and does not need it.)
+    //
+    def needs_transcript_fasta = params.quantification_tool == 'oarfish' ||
+                                 params.quantification_tool == 'both' ||
+                                 params.run_rna_modifications ||
+                                 params.run_rna_methylation
+    if ( needs_transcript_fasta && !params.transcript_fasta ) {
+        error("--transcript_fasta is required for quantification_tool 'oarfish'/'both' and for --run_rna_modifications/--run_rna_methylation")
     }
 
     //
@@ -155,7 +169,7 @@ workflow PIPELINE_INITIALISATION {
     channel
         .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, fastq_1, fastq_2 ->
+            meta, fastq_1, fastq_2, fast5 ->
                 if (!fastq_2) {
                     return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
                 } else {

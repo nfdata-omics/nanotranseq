@@ -1,0 +1,81 @@
+nextflow_process {
+
+    name "Test XPORE_DIFFMOD"
+    script "../main.nf"
+    process "XPORE_DIFFMOD"
+    config "./nextflow.config"
+
+    tag "xpore"
+    tag "methylation"
+    tag "module"
+
+    setup {
+        // Both conditions are needed: diffmod compares groups. dataprep is cheap on the
+        // eventalign fixtures, so it runs here rather than being fixtured itself.
+        run("XPORE_DATAPREP") {
+            script "../../xpore_dataprep/main.nf"
+            process {
+                """
+                input[0] = Channel.of(
+                    [
+                        [ id: 'HEK293T-WT-rep1', condition: 'wt' ],
+                        file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.eventalign.txt", checkIfExists: true)
+                    ],
+                    [
+                        [ id: 'HEK293T-METTL3-KO-rep1', condition: 'ko' ],
+                        file("\${params.drna_testdata_base}/HEK293T-METTL3-KO-rep1/HEK293T-METTL3-KO-rep1.eventalign.txt", checkIfExists: true)
+                    ]
+                )
+                """
+            }
+        }
+    }
+
+    test("differential modification between WT and METTL3-KO") {
+
+        when {
+            process {
+                """
+                // [ meta, [ [condition, id], ... ], [ dataprep_dirs ] ] -- same shaping the
+                // RNA_METHYLATION subworkflow does.
+                input[0] = XPORE_DATAPREP.out.dataprep
+                    .map { meta, dir -> [ meta.condition, meta.id, dir ] }
+                    .toList()
+                    .map { rows ->
+                        [
+                            [ id: 'xpore' ],
+                            rows.collect { cond, id, _dir -> [ cond, id ] },
+                            rows.collect { _cond, _id, dir -> dir }
+                        ]
+                    }
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def table  = path(process.out.diffmod[0][1]).readLines()
+            def header = table[0].split(',')
+
+            assertAll(
+                // xpore wrote its per-site comparison table
+                { assert header.contains('id') },
+                { assert header.contains('position') },
+                { assert header.contains('kmer') },
+
+                // both conditions made it into the config.yml the module builds, so the
+                // comparison columns are named after them
+                { assert header.any { it.startsWith('diff_mod_rate_') } },
+                { assert header.any { it.startsWith('pval_') } },
+                { assert header.any { it.contains('wt') && it.contains('ko') } },
+
+                // Row count is not asserted: one replicate per condition is below what
+                // xpore needs to estimate dispersion, so an empty table is a legitimate
+                // result on this test data. What is tested is that the two-condition
+                // wiring reaches xpore and produces its table.
+                { assert table.drop(1).every { it.split(',').size() == header.size() } }
+            )
+        }
+    }
+}

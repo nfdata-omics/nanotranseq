@@ -1,0 +1,53 @@
+name: xpore_dataprep
+description: Prepare nanopolish eventalign signal for xpore differential modification analysis
+keywords:
+  - rna modification
+  - rna methylation
+  - direct rna
+  - nanopore
+  - epitranscriptome
+tools:
+  - xpore:
+      description: Bayesian mixture modelling of Nanopore direct-RNA signal to detect
+        differential RNA modifications between conditions. `dataprep` collapses a
+        nanopolish eventalign table into the indexed JSON consumed by `diffmod`.
+      homepage: https://github.com/GoekeLab/xpore
+      documentation: https://xpore.readthedocs.io/
+      tool_dev_url: https://github.com/GoekeLab/xpore
+      doi: "10.1038/s41587-021-00949-w"
+      licence: ["MIT"]
+      identifier: biotools:xpore
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', condition:'WT' ]
+    - eventalign:
+        type: file
+        description: nanopolish eventalign table in transcriptomic coordinates
+        pattern: "*.eventalign.txt"
+        ontologies:
+          - edam: http://edamontology.org/format_3475 # TSV
+output:
+  dataprep:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', condition:'WT' ]
+      - "dataprep_*":
+          type: directory
+          description: Per-sample xpore dataprep directory (data.json, data.index,
+            data.readcount, eventalign.index) consumed by XPORE_DIFFMOD
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750 # YAML
+authors:
+  - "@nfdata-omics"
+maintainers:
+  - "@nfdata-omics"

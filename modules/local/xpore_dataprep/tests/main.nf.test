@@ -1,0 +1,46 @@
+nextflow_process {
+
+    name "Test XPORE_DATAPREP"
+    script "../main.nf"
+    process "XPORE_DATAPREP"
+    config "./nextflow.config"
+
+    tag "xpore"
+    tag "methylation"
+    tag "module"
+
+    // Uses the same pre-computed eventalign fixture as the m6anet test; see the note there.
+    test("xpore dataprep on a direct-RNA eventalign table") {
+
+        when {
+            process {
+                """
+                input[0] = Channel.of([
+                    [ id: 'HEK293T-WT-rep1', condition: 'wt' ],
+                    file("\${params.drna_testdata_base}/HEK293T-WT-rep1/HEK293T-WT-rep1.eventalign.txt", checkIfExists: true)
+                ])
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def dir = path(process.out.dataprep[0][1])
+
+            assertAll(
+                { assert dir.toFile().isDirectory() },
+
+                // the four artifacts diffmod reads back
+                { assert path("${dir}/data.json").exists() },
+                { assert path("${dir}/data.index").exists() },
+                { assert path("${dir}/data.readcount").exists() },
+                { assert path("${dir}/eventalign.index").exists() },
+
+                // signal was actually collapsed, not just empty files created
+                { assert path("${dir}/data.json").size() > 0 },
+                { assert path("${dir}/data.index").readLines().size() > 1 }
+            )
+        }
+    }
+}
